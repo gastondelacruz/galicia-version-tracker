@@ -96,7 +96,7 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 h-[calc(100vh-120px)]">
+      <main className="container mx-auto px-4 py-6 h-[calc(100vh-120px)] overflow-auto">
         <KanbanBoard />
       </main>
     </div>

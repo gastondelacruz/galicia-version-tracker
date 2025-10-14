@@ -42,6 +42,9 @@ export function KanbanBoard() {
     (story) => story.environment === "readyToQas"
   );
   const qasStories = stories.filter((story) => story.environment === "qas");
+  const readyToProdStories = stories.filter(
+    (story) => story.environment === "readyToProd"
+  );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -53,7 +56,8 @@ export function KanbanBoard() {
       | "readyToDev"
       | "dev"
       | "readyToQas"
-      | "qas";
+      | "qas"
+      | "readyToProd";
 
     updateStoryBasicInfo({
       id: storyId,
@@ -73,7 +77,7 @@ export function KanbanBoard() {
       collisionDetection={closestCorners}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col md:flex-row gap-4 h-full">
+      <div className="flex flex-col md:flex-row md:items-stretch gap-4">
         <KanbanColumn
           id="readyToDev"
           title="Listo para Dev"
@@ -97,6 +101,12 @@ export function KanbanBoard() {
           title="QAS"
           stories={qasStories}
           count={qasStories.length}
+        />
+        <KanbanColumn
+          id="readyToProd"
+          title="Listo para Prod"
+          stories={readyToProdStories}
+          count={readyToProdStories.length}
         />
       </div>
     </DndContext>

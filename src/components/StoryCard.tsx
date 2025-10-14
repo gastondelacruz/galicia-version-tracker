@@ -62,37 +62,31 @@ export function StoryCard({ story }: StoryCardProps) {
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Package className="h-4 w-4" />
-                  <span className="font-medium">Artefactos:</span>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {story.artifacts.map((artifact) => (
-                    <Badge
-                      key={artifact.id}
-                      variant="secondary"
-                      className="text-xs font-mono"
-                    >
-                      {artifact.name} {artifact.version}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Container className="h-4 w-4" />
-                  <span className="font-medium">Tipo:</span>
-                  <Badge
-                    key={story.id}
-                    variant={story.type === "FRONT" ? "front" : "back"}
-                    className="text-xs font-mono"
-                  >
-                    {story.type}
-                  </Badge>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Container className="h-4 w-4" />
+              <span className="font-medium">Tipo:</span>
+              <Badge
+                key={story.id}
+                variant={story.type === "FRONT" ? "front" : "back"}
+                className="text-xs font-mono"
+              >
+                {story.type}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Package className="h-4 w-4" />
+              <span className="font-medium">Artefactos:</span>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {story.artifacts.map((artifact) => (
+                <Badge
+                  key={artifact.id}
+                  variant="secondary"
+                  className="text-xs font-mono"
+                >
+                  {artifact.name} {artifact.version}
+                </Badge>
+              ))}
             </div>
           </div>
         </CardContent>

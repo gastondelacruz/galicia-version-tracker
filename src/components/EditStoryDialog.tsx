@@ -229,6 +229,9 @@ export function EditStoryDialog({
                       <SelectItem value="dev">DEV</SelectItem>
                       <SelectItem value="readyToQas">LISTO PARA QAS</SelectItem>
                       <SelectItem value="qas">QAS</SelectItem>
+                      <SelectItem value="readyToProd">
+                        LISTO PARA PROD
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 )}
