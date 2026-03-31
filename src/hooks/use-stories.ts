@@ -295,6 +295,21 @@ export const useCreateStory = () => {
   });
 };
 
+export const useStoryArtifactsV2 = (storyId: string) => {
+  return useQuery({
+    queryKey: ["story-artifacts-v2", storyId],
+    queryFn: async (): Promise<ArtifactV2[]> => {
+      const { data, error } = await supabase
+        .from("story_artifacts")
+        .select("artifactsv2(*)")
+        .eq("story_id", storyId);
+      if (error) throw new Error(error.message);
+      return (data?.map((row: any) => row.artifactsv2).filter(Boolean) ?? []) as ArtifactV2[];
+    },
+    enabled: !!storyId,
+  });
+};
+
 export const useAddStoryArtifactV2 = () => {
   const queryClient = useQueryClient();
   return useMutation({

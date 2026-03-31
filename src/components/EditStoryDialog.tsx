@@ -27,9 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDeleteStory, useUpdateStory, useUsers } from "@/hooks/use-stories";
+import { useAddStoryArtifactV2, useDeleteStory, useRemoveStoryArtifactV2, useStoryArtifactsV2, useUpdateStory, useUsers } from "@/hooks/use-stories";
 import { useToast } from "@/hooks/use-toast";
-import { Artifact, StoryWithDetails } from "@/types";
+import { Artifact, ArtifactV2, StoryWithDetails } from "@/types";
+import { ArtifactV2Selector } from "./ArtifactV2Selector";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2, X } from "lucide-react";
@@ -72,8 +73,12 @@ export function EditStoryDialog({
   });
 
   const { data: users = [] } = useUsers();
+  const { data: existingArtifactsV2 = [] } = useStoryArtifactsV2(story.id);
+  const [selectedArtifactsV2, setSelectedArtifactsV2] = useState<ArtifactV2[]>([]);
   const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
   const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
+  const { mutate: addArtifactV2 } = useAddStoryArtifactV2();
+  const { mutate: removeArtifactV2 } = useRemoveStoryArtifactV2();
   const { toast } = useToast();
 
   const artifacts = watch("artifacts");
@@ -88,7 +93,8 @@ export function EditStoryDialog({
       artifactVersion: "",
       type: story.type,
     });
-  }, [story, reset]);
+    setSelectedArtifactsV2(existingArtifactsV2);
+  }, [story, reset, existingArtifactsV2]);
 
   const handleAddArtifact = () => {
     const artifactName = getValues("artifactName");
@@ -134,6 +140,16 @@ export function EditStoryDialog({
       },
       {
         onSuccess: () => {
+          // Sincronizar artefactos v2: agregar los nuevos, quitar los removidos
+          const toAdd = selectedArtifactsV2.filter(
+            (a) => !existingArtifactsV2.some((e) => e.id === a.id)
+          );
+          const toRemove = existingArtifactsV2.filter(
+            (e) => !selectedArtifactsV2.some((a) => a.id === e.id)
+          );
+          toAdd.forEach((a) => addArtifactV2({ storyId: story.id, artifactId: a.id! }));
+          toRemove.forEach((a) => removeArtifactV2({ storyId: story.id, artifactId: a.id! }));
+
           toast({
             title: "Historia actualizada",
             description: "Los cambios se guardaron correctamente.",
@@ -309,6 +325,13 @@ export function EditStoryDialog({
                 </p>
               )}
             </div>
+
+            <hr className="border-border" />
+
+            <ArtifactV2Selector
+              selected={selectedArtifactsV2}
+              onChange={setSelectedArtifactsV2}
+            />
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button

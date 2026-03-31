@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUsers } from "@/hooks/use-stories";
+import { useStoryArtifactsV2, useUsers } from "@/hooks/use-stories";
 import { StoryWithDetails } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
 import { Container, GripVertical, Package, User } from "lucide-react";
@@ -13,6 +13,7 @@ interface StoryCardProps {
 
 export function StoryCard({ story }: StoryCardProps) {
   const { data: users = [] } = useUsers();
+  const { data: artifactsV2 = [] } = useStoryArtifactsV2(story.id);
   const [editOpen, setEditOpen] = useState(false);
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -88,6 +89,19 @@ export function StoryCard({ story }: StoryCardProps) {
                 </Badge>
               ))}
             </div>
+            {artifactsV2.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {artifactsV2.map((artifact) => (
+                  <Badge
+                    key={artifact.id}
+                    variant={artifact.type === "FRONT" ? "front" : "back"}
+                    className="text-xs font-mono"
+                  >
+                    {artifact.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
