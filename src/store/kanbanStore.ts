@@ -3,16 +3,16 @@ import { devtools } from "zustand/middleware";
 import { Person } from "../types";
 
 interface KanbanStore {
-  filteredUser: string | null;
-  setFilter: (person: Person["id"] | null) => void;
+  filteredUsers: string[];
+  setFilter: (users: Person["id"][]) => void;
 }
 
 export const useKanbanStore = create<KanbanStore>()(
   devtools(
     (set) => ({
-      filteredUser: null,
-      setFilter: (user) =>
-        set({ filteredUser: user }, false, { type: "setFilter", user }),
+      filteredUsers: [],
+      setFilter: (users) =>
+        set({ filteredUsers: users }, false, { type: "setFilter", users }),
     }),
     {
       name: "kanban-storage",

@@ -18,13 +18,13 @@ import { Loader } from "./ui/Loader";
 export function KanbanBoard() {
   const { data: allStories = [], isLoading: storiesLoading } =
     useStoriesWithDetails();
-  const filteredUser = useKanbanStore((state) => state.filteredUser);
+  const filteredUsers = useKanbanStore((state) => state.filteredUsers);
   const { mutate: updateStoryBasicInfo } = useUpdateStoryBasicInfo();
 
   const stories = useMemo(() => {
-    if (!filteredUser) return allStories;
-    return allStories.filter((story) => story.assigned_to === filteredUser);
-  }, [allStories, filteredUser]);
+    if (filteredUsers.length === 0) return allStories;
+    return allStories.filter((story) => filteredUsers.includes(story.assigned_to));
+  }, [allStories, filteredUsers]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
