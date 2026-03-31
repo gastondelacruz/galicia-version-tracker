@@ -4,6 +4,13 @@ export interface Person {
   created_at: string;
 }
 
+export interface ArtifactV2 {
+  id?: string;
+  name: string;
+  type: "FRONT" | "BACK";
+  created_at?: string;
+}
+
 export interface Artifact {
   id?: string;
   story_id?: string;

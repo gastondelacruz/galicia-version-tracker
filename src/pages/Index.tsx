@@ -1,3 +1,4 @@
+import { AddArtifactDialog } from "@/components/AddArtifactDialog";
 import { AddStoryDialog } from "@/components/AddStoryDialog";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { PersonFilter } from "@/components/PersonFilter";
@@ -80,6 +81,7 @@ const Index = () => {
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <PersonFilter />
+              <AddArtifactDialog />
               <AddStoryDialog />
               <Button
                 size="lg"

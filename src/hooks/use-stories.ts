@@ -1,4 +1,4 @@
-import { Artifact, Person, Story, StoryWithDetails } from "@/types";
+import { Artifact, ArtifactV2, Person, Story, StoryWithDetails } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabaseClient";
 
@@ -291,6 +291,75 @@ export const useCreateStory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
+    },
+  });
+};
+
+export const useArtifactsV2 = () => {
+  return useQuery({
+    queryKey: ["artifactsv2"],
+    queryFn: async (): Promise<ArtifactV2[]> => {
+      const { data, error } = await supabase
+        .from("artifactsv2")
+        .select("*")
+        .order("name", { ascending: true });
+      if (error) throw new Error(error.message);
+      return data as ArtifactV2[];
+    },
+  });
+};
+
+export const useCreateArtifactV2 = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ name, type }: Pick<ArtifactV2, "name" | "type">) => {
+      const { data, error } = await supabase
+        .from("artifactsv2")
+        .insert({ name, type })
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      return data as ArtifactV2;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
+    },
+  });
+};
+
+export const useUpdateArtifactV2 = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name, type }: { id: string; name: string; type: "FRONT" | "BACK" }) => {
+      const { data, error } = await supabase
+        .from("artifactsv2")
+        .update({ name, type })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      return data as ArtifactV2;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
+    },
+  });
+};
+
+export const useDeleteArtifactV2 = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("artifactsv2")
+        .delete()
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
     },
   });
 };
