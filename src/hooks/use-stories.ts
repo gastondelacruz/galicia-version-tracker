@@ -295,6 +295,40 @@ export const useCreateStory = () => {
   });
 };
 
+export const useAddStoryArtifactV2 = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ storyId, artifactId }: { storyId: string; artifactId: string }) => {
+      const { error } = await supabase
+        .from("story_artifacts")
+        .insert({ story_id: storyId, artifact_id: artifactId });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_, { storyId }) => {
+      queryClient.invalidateQueries({ queryKey: ["story-artifacts-v2", storyId] });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+    },
+  });
+};
+
+export const useRemoveStoryArtifactV2 = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ storyId, artifactId }: { storyId: string; artifactId: string }) => {
+      const { error } = await supabase
+        .from("story_artifacts")
+        .delete()
+        .eq("story_id", storyId)
+        .eq("artifact_id", artifactId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: (_, { storyId }) => {
+      queryClient.invalidateQueries({ queryKey: ["story-artifacts-v2", storyId] });
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+    },
+  });
+};
+
 export const useArtifactsV2 = () => {
   return useQuery({
     queryKey: ["artifactsv2"],

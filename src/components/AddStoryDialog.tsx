@@ -18,8 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateStory, useUsers } from "@/hooks/use-stories";
-import { Artifact } from "@/types";
+import {
+  useAddStoryArtifactV2,
+  useArtifactsV2,
+  useCreateStory,
+  useUsers,
+} from "@/hooks/use-stories";
+import { Artifact, ArtifactV2 } from "@/types";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
@@ -50,10 +55,23 @@ export function AddStoryDialog() {
     },
   });
 
+  const [selectedArtifactsV2, setSelectedArtifactsV2] = useState<ArtifactV2[]>(
+    [],
+  );
+  const [artifactSearch, setArtifactSearch] = useState("");
+
   const { data: users = [] } = useUsers();
+  const { data: allArtifactsV2 = [] } = useArtifactsV2();
   const { mutate: createStory, isPending: isUpdating } = useCreateStory();
+  const { mutate: addStoryArtifact } = useAddStoryArtifactV2();
 
   const artifacts = watch("artifacts");
+
+  const filteredArtifactsV2 = allArtifactsV2.filter(
+    (a) =>
+      a.name.toLowerCase().includes(artifactSearch.toLowerCase()) &&
+      !selectedArtifactsV2.some((s) => s.id === a.id),
+  );
 
   const handleAddArtifact = () => {
     const artifactName = getValues("artifactName");
@@ -88,11 +106,16 @@ export function AddStoryDialog() {
         artifacts: data.artifacts,
       },
       {
-        onSuccess: () => {
+        onSuccess: (story) => {
+          selectedArtifactsV2.forEach((a) =>
+            addStoryArtifact({ storyId: story.id, artifactId: a.id! }),
+          );
           reset();
+          setSelectedArtifactsV2([]);
+          setArtifactSearch("");
           setOpen(false);
         },
-      }
+      },
     );
   };
 
@@ -100,6 +123,8 @@ export function AddStoryDialog() {
     setOpen(open);
     if (!open) {
       reset();
+      setSelectedArtifactsV2([]);
+      setArtifactSearch("");
     }
   };
 
@@ -259,6 +284,60 @@ export function AddStoryDialog() {
                 <p className="text-sm text-red-500">
                   {errors.artifacts.message}
                 </p>
+              )}
+            </div>
+
+            <hr className="border-border" />
+
+            <div className="grid gap-2">
+              <Label>Artefactos (v2)</Label>
+              <Input
+                placeholder="Buscar artefacto..."
+                value={artifactSearch}
+                onChange={(e) => setArtifactSearch(e.target.value)}
+              />
+              {artifactSearch && filteredArtifactsV2.length > 0 && (
+                <div className="border rounded-md max-h-[140px] overflow-y-auto">
+                  {filteredArtifactsV2.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent hover:text-white flex items-center justify-between"
+                      onClick={() => {
+                        setSelectedArtifactsV2((prev) => [...prev, a]);
+                        setArtifactSearch("");
+                      }}
+                    >
+                      <span>{a.name}</span>
+                      <span className="text-xs text-muted-foreground text-black">
+                        {a.type}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {artifactSearch && filteredArtifactsV2.length === 0 && (
+                <p className="text-xs text-muted-foreground">Sin resultados.</p>
+              )}
+              {selectedArtifactsV2.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {selectedArtifactsV2.map((a) => (
+                    <Badge key={a.id} variant="secondary" className="text-xs">
+                      {a.name}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedArtifactsV2((prev) =>
+                            prev.filter((s) => s.id !== a.id),
+                          )
+                        }
+                        className="ml-2 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
               )}
             </div>
           </div>
