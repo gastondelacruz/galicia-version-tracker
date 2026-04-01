@@ -159,7 +159,7 @@ export function AddArtifactDialog() {
           Artefactos
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[520px]" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Gestión de Artefactos</DialogTitle>
         </DialogHeader>
