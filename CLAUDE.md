@@ -217,7 +217,7 @@ it("calls useState with false", () => {
 ## 🔄 Workflow Summary
 
 1. **Understand** the requested change
-2. **Plan** which files need modification
+2. **Plan** which files need modification — **show the plan and wait for approval before writing any code**
 3. **Verify** rules compliance before coding
 4. **Implement** following all rules
 5. **Run** `npm verify` and fix any issues
@@ -245,3 +245,4 @@ it("calls useState with false", () => {
 5. 🧩 **UI Components = Presentation Only**: Extract logic to custom hooks or services
 6. 🧪 **Test Behavior**: Never test implementation details (no spying on `useState`, etc.)
 7. 📂 **Path Aliases Always**: Never use relative paths like `../../shared/...`
+8. 🛑 **Confirm Before Every Change**: Before writing or modifying ANY file, present the exact list of changes planned (file path + what will change) and wait for explicit user approval. Do NOT write code until the user confirms with "yes", "ok", "adelante", or equivalent.
