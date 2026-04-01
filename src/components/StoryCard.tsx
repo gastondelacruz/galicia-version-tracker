@@ -1,14 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStoryArtifactsV2, useUsers } from "@/hooks/use-stories";
-import { StoryWithDetails } from "@/types";
+import { Story } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
 import { Container, GripVertical, Package, User } from "lucide-react";
 import { useState } from "react";
 import { EditStoryDialog } from "./EditStoryDialog";
 
 interface StoryCardProps {
-  story: StoryWithDetails;
+  story: Story;
 }
 
 export function StoryCard({ story }: StoryCardProps) {
