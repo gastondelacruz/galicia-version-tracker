@@ -1,12 +1,12 @@
 import { cn } from "@/shared/utils/utils";
-import { StoryWithDetails } from "@/shared/types";
+import { Story } from "@/shared/types";
 import { useDroppable } from "@dnd-kit/core";
 import { StoryCard } from "@/features/stories/components/StoryCard";
 
 interface KanbanColumnProps {
   id: "readyToDev" | "dev" | "readyToQas" | "qas" | "readyToProd";
   title: string;
-  stories: StoryWithDetails[];
+  stories: Story[];
   count: number;
 }
 
@@ -28,7 +28,7 @@ export function KanbanColumn({ id, title, stories, count }: KanbanColumnProps) {
             "bg-[hsl(var(--qas-light))] border-2 border-[hsl(var(--qas))]",
           id === "readyToProd" &&
             "bg-[hsl(var(--dev-light))] border-2 border-[hsl(var(--dev))]",
-          isOver && "ring-2 ring-primary ring-offset-2"
+          isOver && "ring-2 ring-primary ring-offset-2",
         )}
       >
         <div className="flex items-center justify-between mb-4">
@@ -47,7 +47,7 @@ export function KanbanColumn({ id, title, stories, count }: KanbanColumnProps) {
               id === "qas" &&
                 "bg-[hsl(var(--qas))] text-[hsl(var(--qas-foreground))]",
               id === "readyToProd" &&
-                "bg-[hsl(var(--dev))] text-[hsl(var(--dev-foreground))]"
+                "bg-[hsl(var(--dev))] text-[hsl(var(--dev-foreground))]",
             )}
           >
             {count}

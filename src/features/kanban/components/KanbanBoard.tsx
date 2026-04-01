@@ -14,6 +14,7 @@ import {
 import { useMemo } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import { Loader } from "@/shared/components/ui/Loader";
+import { Story } from "@/shared/types";
 
 export function KanbanBoard() {
   const { data: allStories = [], isLoading: storiesLoading } =
@@ -21,7 +22,7 @@ export function KanbanBoard() {
   const filteredUsers = useKanbanStore((state) => state.filteredUsers);
   const { mutate: updateStoryBasicInfo } = useUpdateStoryBasicInfo();
 
-  const stories = useMemo(() => {
+  const stories: Story[] = useMemo(() => {
     if (filteredUsers.length === 0) return allStories;
     return allStories.filter((story) =>
       filteredUsers.includes(story.assigned_to),
