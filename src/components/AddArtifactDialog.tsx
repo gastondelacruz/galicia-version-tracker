@@ -137,8 +137,22 @@ export function AddArtifactDialog() {
     });
   };
 
+  const handleOpenChange = (value: boolean) => {
+    setOpen(value);
+    if (!value) {
+      setNewName("");
+      setNewType("BACK");
+      setFilterName("");
+      setFilterType("ALL");
+      setEditingId(null);
+      setEditingName("");
+      setEditingType("BACK");
+      setDeletingId(null);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" className="shadow-lg" variant="terciary">
           <Pencil className="mr-2 h-5 w-5" />

@@ -26,9 +26,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAddStoryArtifactV2, useDeleteStory, useRemoveStoryArtifactV2, useStoryArtifactsV2, useUpdateStory, useUsers } from "@/hooks/use-stories";
+import {
+  useAddStoryArtifactV2,
+  useDeleteStory,
+  useRemoveStoryArtifactV2,
+  useStoryArtifactsV2,
+  useUpdateStory,
+  useUsers,
+} from "@/hooks/use-stories";
 import { useToast } from "@/hooks/use-toast";
-import { ArtifactV2, StoryWithDetails } from "@/types";
+import { ArtifactV2, Story } from "@/types";
 import { ArtifactV2Selector } from "./ArtifactV2Selector";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +44,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 interface EditStoryDialogProps {
-  story: StoryWithDetails;
+  story: Story;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -101,13 +108,17 @@ export function EditStoryDialog({
         onSuccess: () => {
           const selected = data.artifactsV2 as ArtifactV2[];
           const toAdd = selected.filter(
-            (a) => !existingArtifactsV2.some((e) => e.id === a.id)
+            (a) => !existingArtifactsV2.some((e) => e.id === a.id),
           );
           const toRemove = existingArtifactsV2.filter(
-            (e) => !selected.some((a) => a.id === e.id)
+            (e) => !selected.some((a) => a.id === e.id),
           );
-          toAdd.forEach((a) => addArtifactV2({ storyId: story.id, artifactId: a.id! }));
-          toRemove.forEach((a) => removeArtifactV2({ storyId: story.id, artifactId: a.id! }));
+          toAdd.forEach((a) =>
+            addArtifactV2({ storyId: story.id, artifactId: a.id! }),
+          );
+          toRemove.forEach((a) =>
+            removeArtifactV2({ storyId: story.id, artifactId: a.id! }),
+          );
 
           toast({
             title: "Historia actualizada",
@@ -115,7 +126,7 @@ export function EditStoryDialog({
           });
           onOpenChange(false);
         },
-      }
+      },
     );
   };
 
@@ -132,12 +143,17 @@ export function EditStoryDialog({
           onOpenChange(false);
           setShowDeleteAlert(false);
         },
-      }
+      },
     );
   };
 
+  const handleOpenChange = (value: boolean) => {
+    if (!value) setShowDeleteAlert(false);
+    onOpenChange(value);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <form onSubmit={handleSubmit(handleSave)}>
           <DialogHeader>
