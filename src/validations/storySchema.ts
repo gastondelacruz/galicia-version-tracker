@@ -1,16 +1,11 @@
 import { z } from "zod";
 
-export const artifactV2Schema = z.object({
+export const artifactSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   type: z.enum(["FRONT", "BACK"]),
 });
 
-export type ArtifactV2FormData = z.infer<typeof artifactV2Schema>;
-
-export const artifactSchema = z.object({
-  name: z.string().min(1, "El nombre es requerido"),
-  version: z.string().min(1, "La versión es requerida"),
-});
+export type ArtifactFormData = z.infer<typeof artifactSchema>;
 
 export const storySchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -23,7 +18,7 @@ export const storySchema = z.object({
     "readyToProd",
   ]),
   type: z.enum(["FRONT", "BACK"]),
-  artifactsV2: z
+  artifacts: z
     .array(
       z.object({
         id: z.string().optional(),

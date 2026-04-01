@@ -1,4 +1,4 @@
-import { Artifact, ArtifactV2, Person, Story } from "@/types";
+import { Artifact, Person, Story } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../lib/supabaseClient";
 
@@ -38,59 +38,6 @@ export const useUsers = () => {
   });
 };
 
-export const updateStoryArtifacts = async (
-  storyId: string,
-  artifacts: Array<Omit<Artifact, "story_id" | "created_at"> & { id?: string }>,
-) => {
-  const { data: existingArtifacts, error: fetchError } = await supabase
-    .from("artifacts")
-    .select("id")
-    .eq("story_id", storyId);
-
-  if (fetchError) throw new Error(fetchError.message);
-
-  const existingIds = existingArtifacts?.map((a) => a.id) || [];
-  const updatedIds = artifacts.filter((a) => a.id).map((a) => a.id as string);
-
-  const toDelete = existingIds.filter((id) => !updatedIds.includes(id));
-  if (toDelete.length > 0) {
-    const { error: deleteError } = await supabase
-      .from("artifacts")
-      .delete()
-      .in("id", toDelete);
-
-    if (deleteError) throw new Error(deleteError.message);
-  }
-
-  const toUpdate = artifacts.filter((a) => a.id);
-  const toInsert = artifacts.filter((a) => !a.id);
-
-  if (toUpdate.length > 0) {
-    const { error: updateError } = await supabase.from("artifacts").upsert(
-      toUpdate.map((artifact) => ({
-        id: artifact.id!,
-        name: artifact.name,
-        version: artifact.version,
-        story_id: storyId,
-      })),
-      { onConflict: "id" },
-    );
-
-    if (updateError) throw new Error(updateError.message);
-  }
-
-  if (toInsert.length > 0) {
-    const { error: insertError } = await supabase.from("artifacts").insert(
-      toInsert.map((artifact) => ({
-        name: artifact.name,
-        version: artifact.version,
-        story_id: storyId,
-      })),
-    );
-
-    if (insertError) throw new Error(insertError.message);
-  }
-};
 
 export const useUpdateStoryBasicInfo = () => {
   const queryClient = useQueryClient();
@@ -131,13 +78,9 @@ export const useUpdateStory = () => {
       id: string;
       updates: Partial<
         Pick<Story, "name" | "assigned_to" | "environment" | "type">
-      > & {
-        artifacts?: Array<
-          Omit<Artifact, "story_id" | "created_at"> & { id?: string }
-        >;
-      };
+      >;
     }) => {
-      const { name, assigned_to, environment, artifacts, type } = updates;
+      const { name, assigned_to, environment, type } = updates;
 
       const storyUpdates: Partial<
         Pick<Story, "name" | "assigned_to" | "environment" | "type">
@@ -147,24 +90,15 @@ export const useUpdateStory = () => {
       if (environment !== undefined) storyUpdates.environment = environment;
       if (type !== undefined) storyUpdates.type = type;
 
-      let storyData: Story | undefined;
-      if (Object.keys(storyUpdates).length > 0) {
-        const { data, error: storyError } = await supabase
-          .from("stories")
-          .update(storyUpdates)
-          .eq("id", id)
-          .select()
-          .single();
+      const { data, error: storyError } = await supabase
+        .from("stories")
+        .update(storyUpdates)
+        .eq("id", id)
+        .select()
+        .single();
 
-        if (storyError) throw new Error(storyError.message);
-        storyData = data;
-      }
-
-      if (artifacts && artifacts.length > 0) {
-        await updateStoryArtifacts(id, artifacts);
-      }
-
-      return storyData as Story;
+      if (storyError) throw new Error(storyError.message);
+      return data as Story;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
@@ -203,24 +137,24 @@ export const useCreateStory = () => {
   });
 };
 
-export const useStoryArtifactsV2 = (storyId: string) => {
+export const useStoryArtifacts = (storyId: string) => {
   return useQuery({
     queryKey: ["story-artifacts-v2", storyId],
-    queryFn: async (): Promise<ArtifactV2[]> => {
+    queryFn: async (): Promise<Artifact[]> => {
       const { data, error } = await supabase
         .from("story_artifacts")
         .select("artifactsv2(*)")
         .eq("story_id", storyId);
       if (error) throw new Error(error.message);
       return (data
-        ?.flatMap((row: { artifactsv2: ArtifactV2[] }) => row.artifactsv2)
-        .filter(Boolean) ?? []) as ArtifactV2[];
+        ?.flatMap((row: { artifactsv2: Artifact[] }) => row.artifactsv2)
+        .filter(Boolean) ?? []) as Artifact[];
     },
     enabled: !!storyId,
   });
 };
 
-export const useAddStoryArtifactV2 = () => {
+export const useAddStoryArtifact = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -244,7 +178,7 @@ export const useAddStoryArtifactV2 = () => {
   });
 };
 
-export const useRemoveStoryArtifactV2 = () => {
+export const useRemoveStoryArtifact = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -270,25 +204,25 @@ export const useRemoveStoryArtifactV2 = () => {
   });
 };
 
-export const useArtifactsV2 = () => {
+export const useArtifacts = () => {
   return useQuery({
     queryKey: ["artifactsv2"],
-    queryFn: async (): Promise<ArtifactV2[]> => {
+    queryFn: async (): Promise<Artifact[]> => {
       const { data, error } = await supabase
         .from("artifactsv2")
         .select("*")
         .order("name", { ascending: true });
       if (error) throw new Error(error.message);
-      return data as ArtifactV2[];
+      return data as Artifact[];
     },
   });
 };
 
-export const useCreateArtifactV2 = () => {
+export const useCreateArtifact = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, type }: Pick<ArtifactV2, "name" | "type">) => {
+    mutationFn: async ({ name, type }: Pick<Artifact, "name" | "type">) => {
       const { data, error } = await supabase
         .from("artifactsv2")
         .insert({ name, type })
@@ -296,7 +230,7 @@ export const useCreateArtifactV2 = () => {
         .single();
 
       if (error) throw new Error(error.message);
-      return data as ArtifactV2;
+      return data as Artifact;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
@@ -304,7 +238,7 @@ export const useCreateArtifactV2 = () => {
   });
 };
 
-export const useUpdateArtifactV2 = () => {
+export const useUpdateArtifact = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -323,7 +257,7 @@ export const useUpdateArtifactV2 = () => {
         .select()
         .single();
       if (error) throw new Error(error.message);
-      return data as ArtifactV2;
+      return data as Artifact;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
@@ -331,7 +265,7 @@ export const useUpdateArtifactV2 = () => {
   });
 };
 
-export const useDeleteArtifactV2 = () => {
+export const useDeleteArtifact = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {

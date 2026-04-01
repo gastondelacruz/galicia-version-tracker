@@ -15,13 +15,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useArtifactsV2,
-  useCreateArtifactV2,
-  useDeleteArtifactV2,
-  useUpdateArtifactV2,
+  useArtifacts,
+  useCreateArtifact,
+  useDeleteArtifact,
+  useUpdateArtifact,
 } from "@/hooks/use-stories";
 import { toast } from "@/hooks/use-toast";
-import { ArtifactV2 } from "@/types";
+import { Artifact } from "@/types";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 
@@ -36,12 +36,12 @@ export function AddArtifactDialog() {
   const [editingName, setEditingName] = useState("");
   const [editingType, setEditingType] = useState<"FRONT" | "BACK">("BACK");
 
-  const { data: artifacts = [], isLoading } = useArtifactsV2();
+  const { data: artifacts = [], isLoading } = useArtifacts();
   const { mutate: createArtifact, isPending: isCreating } =
-    useCreateArtifactV2();
+    useCreateArtifact();
   const { mutate: updateArtifact, isPending: isUpdating } =
-    useUpdateArtifactV2();
-  const { mutate: deleteArtifact } = useDeleteArtifactV2();
+    useUpdateArtifact();
+  const { mutate: deleteArtifact } = useDeleteArtifact();
 
   const filteredArtifacts = artifacts.filter((a) => {
     const matchesName = a.name.toLowerCase().includes(filterName.toLowerCase());
@@ -85,7 +85,7 @@ export function AddArtifactDialog() {
     );
   };
 
-  const handleStartEdit = (artifact: ArtifactV2) => {
+  const handleStartEdit = (artifact: Artifact) => {
     setEditingId(artifact.id!);
     setEditingName(artifact.name);
     setEditingType(artifact.type);

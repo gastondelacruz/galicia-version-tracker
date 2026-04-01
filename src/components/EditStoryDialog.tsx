@@ -27,16 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useAddStoryArtifactV2,
+  useAddStoryArtifact,
   useDeleteStory,
-  useRemoveStoryArtifactV2,
-  useStoryArtifactsV2,
+  useRemoveStoryArtifact,
+  useStoryArtifacts,
   useUpdateStory,
   useUsers,
 } from "@/hooks/use-stories";
 import { useToast } from "@/hooks/use-toast";
-import { ArtifactV2, Story } from "@/types";
-import { ArtifactV2Selector } from "./ArtifactV2Selector";
+import { Artifact, Story } from "@/types";
+import { ArtifactSelector } from "./ArtifactSelector";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
@@ -69,16 +69,16 @@ export function EditStoryDialog({
       assignedTo: story.assigned_to,
       environment: story.environment as "dev" | "qas",
       type: story.type,
-      artifactsV2: [],
+      artifacts: [],
     },
   });
 
   const { data: users = [] } = useUsers();
-  const { data: existingArtifactsV2 = [] } = useStoryArtifactsV2(story.id);
+  const { data: existingArtifacts = [] } = useStoryArtifacts(story.id);
   const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
   const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
-  const { mutate: addArtifactV2 } = useAddStoryArtifactV2();
-  const { mutate: removeArtifactV2 } = useRemoveStoryArtifactV2();
+  const { mutate: addArtifact } = useAddStoryArtifact();
+  const { mutate: removeArtifact } = useRemoveStoryArtifact();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export function EditStoryDialog({
       assignedTo: story.assigned_to,
       environment: story.environment as "dev" | "qas",
       type: story.type,
-      artifactsV2: existingArtifactsV2,
+      artifacts: existingArtifacts,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [story.id, open]);
@@ -106,18 +106,18 @@ export function EditStoryDialog({
       },
       {
         onSuccess: () => {
-          const selected = data.artifactsV2 as ArtifactV2[];
+          const selected = data.artifacts as Artifact[];
           const toAdd = selected.filter(
-            (a) => !existingArtifactsV2.some((e) => e.id === a.id),
+            (a) => !existingArtifacts.some((e) => e.id === a.id),
           );
-          const toRemove = existingArtifactsV2.filter(
+          const toRemove = existingArtifacts.filter(
             (e) => !selected.some((a) => a.id === e.id),
           );
           toAdd.forEach((a) =>
-            addArtifactV2({ storyId: story.id, artifactId: a.id! }),
+            addArtifact({ storyId: story.id, artifactId: a.id! }),
           );
           toRemove.forEach((a) =>
-            removeArtifactV2({ storyId: story.id, artifactId: a.id! }),
+            removeArtifact({ storyId: story.id, artifactId: a.id! }),
           );
 
           toast({
@@ -255,13 +255,13 @@ export function EditStoryDialog({
             </div>
 
             <Controller
-              name="artifactsV2"
+              name="artifacts"
               control={control}
               render={({ field }) => (
-                <ArtifactV2Selector
-                  selected={field.value as ArtifactV2[]}
+                <ArtifactSelector
+                  selected={field.value as Artifact[]}
                   onChange={field.onChange}
-                  error={errors.artifactsV2?.message}
+                  error={errors.artifacts?.message}
                 />
               )}
             />

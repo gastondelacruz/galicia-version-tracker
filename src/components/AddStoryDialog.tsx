@@ -18,17 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  useAddStoryArtifactV2,
+  useAddStoryArtifact,
   useCreateStory,
   useUsers,
 } from "@/hooks/use-stories";
-import { ArtifactV2 } from "@/types";
+import { Artifact } from "@/types";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ArtifactV2Selector } from "./ArtifactV2Selector";
+import { ArtifactSelector } from "./ArtifactSelector";
 
 export function AddStoryDialog() {
   const [open, setOpen] = useState(false);
@@ -46,13 +46,13 @@ export function AddStoryDialog() {
       assignedTo: "",
       environment: "readyToDev",
       type: "FRONT",
-      artifactsV2: [],
+      artifacts: [],
     },
   });
 
   const { data: users = [] } = useUsers();
   const { mutate: createStory, isPending: isUpdating } = useCreateStory();
-  const { mutate: addStoryArtifact } = useAddStoryArtifactV2();
+  const { mutate: addStoryArtifact } = useAddStoryArtifact();
 
   const handleSave = (data: StoryFormData) => {
     createStory(
@@ -66,7 +66,7 @@ export function AddStoryDialog() {
       },
       {
         onSuccess: (story) => {
-          data.artifactsV2.forEach((a) =>
+          data.artifacts.forEach((a) =>
             addStoryArtifact({ storyId: story.id, artifactId: a.id! }),
           );
           reset();
@@ -198,13 +198,13 @@ export function AddStoryDialog() {
             </div>
 
             <Controller
-              name="artifactsV2"
+              name="artifacts"
               control={control}
               render={({ field }) => (
-                <ArtifactV2Selector
-                  selected={field.value as ArtifactV2[]}
+                <ArtifactSelector
+                  selected={field.value as Artifact[]}
                   onChange={field.onChange}
-                  error={errors.artifactsV2?.message}
+                  error={errors.artifacts?.message}
                 />
               )}
             />

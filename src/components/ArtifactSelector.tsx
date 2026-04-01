@@ -1,20 +1,20 @@
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useArtifactsV2 } from "@/hooks/use-stories";
-import { ArtifactV2 } from "@/types";
+import { useArtifacts } from "@/hooks/use-stories";
+import { Artifact } from "@/types";
 import { X } from "lucide-react";
 import { useState } from "react";
 
-interface ArtifactV2SelectorProps {
-  selected: ArtifactV2[];
-  onChange: (artifacts: ArtifactV2[]) => void;
+interface ArtifactSelectorProps {
+  selected: Artifact[];
+  onChange: (artifacts: Artifact[]) => void;
   error?: string;
 }
 
-export function ArtifactV2Selector({ selected, onChange, error }: ArtifactV2SelectorProps) {
+export function ArtifactSelector({ selected, onChange, error }: ArtifactSelectorProps) {
   const [search, setSearch] = useState("");
-  const { data: allArtifacts = [] } = useArtifactsV2();
+  const { data: allArtifacts = [] } = useArtifacts();
 
   const filtered = allArtifacts.filter(
     (a) =>
@@ -22,7 +22,7 @@ export function ArtifactV2Selector({ selected, onChange, error }: ArtifactV2Sele
       !selected.some((s) => s.id === a.id)
   );
 
-  const add = (artifact: ArtifactV2) => {
+  const add = (artifact: Artifact) => {
     onChange([...selected, artifact]);
     setSearch("");
   };
