@@ -23,27 +23,30 @@ export function KanbanBoard() {
 
   const stories = useMemo(() => {
     if (filteredUsers.length === 0) return allStories;
-    return allStories.filter((story) => filteredUsers.includes(story.assigned_to));
+    return allStories.filter((story) =>
+      filteredUsers.includes(story.assigned_to),
+    );
   }, [allStories, filteredUsers]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        delay: 100,
+        tolerance: 5,
       },
-    })
+    }),
   );
 
   const readyToDevStories = stories.filter(
-    (story) => story.environment === "readyToDev"
+    (story) => story.environment === "readyToDev",
   );
   const devStories = stories.filter((story) => story.environment === "dev");
   const readyToQasStories = stories.filter(
-    (story) => story.environment === "readyToQas"
+    (story) => story.environment === "readyToQas",
   );
   const qasStories = stories.filter((story) => story.environment === "qas");
   const readyToProdStories = stories.filter(
-    (story) => story.environment === "readyToProd"
+    (story) => story.environment === "readyToProd",
   );
 
   const handleDragEnd = (event: DragEndEvent) => {

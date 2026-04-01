@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStoryArtifacts, useUsers } from "@/hooks/use-stories";
 import { Story } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
-import { Container, GripVertical, Package, User } from "lucide-react";
+import { Container, Package, User } from "lucide-react";
 import { useState } from "react";
 import { EditStoryDialog } from "./EditStoryDialog";
 
@@ -32,27 +32,15 @@ export function StoryCard({ story }: StoryCardProps) {
       <Card
         ref={setNodeRef}
         style={style}
-        className="cursor-grab active:cursor-grabbing hover:shadow-lg transition-shadow"
-        onClick={(e) => {
-          if (!(e.target as HTMLElement).closest("[data-drag-handle]")) {
-            setEditOpen(true);
-          }
-        }}
+        className="cursor-pointer hover:shadow-lg transition-shadow select-none"
+        onClick={() => setEditOpen(true)}
+        {...listeners}
         {...attributes}
       >
         <CardHeader className="pb-3">
-          <div className="flex items-start gap-2">
-            <div
-              data-drag-handle
-              {...listeners}
-              className="cursor-grab mt-1 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <GripVertical className="h-5 w-5" />
-            </div>
-            <CardTitle className="text-base font-semibold leading-tight flex-1">
-              {story.name}
-            </CardTitle>
-          </div>
+          <CardTitle className="text-base font-semibold leading-tight">
+            {story.name}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

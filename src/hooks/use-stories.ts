@@ -113,6 +113,19 @@ export const useUpdateStoryBasicInfo = () => {
       if (error) throw new Error(error.message);
       return data as Story;
     },
+    onMutate: async ({ id, updates }) => {
+      await queryClient.cancelQueries({ queryKey: ["stories", "with-details"] });
+      const previousStories = queryClient.getQueryData<Story[]>(["stories", "with-details"]);
+      queryClient.setQueryData<Story[]>(["stories", "with-details"], (old) =>
+        old?.map((story) => (story.id === id ? { ...story, ...updates } : story)) ?? []
+      );
+      return { previousStories };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousStories) {
+        queryClient.setQueryData(["stories", "with-details"], context.previousStories);
+      }
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       queryClient.invalidateQueries({ queryKey: ["story", variables.id] });
