@@ -100,13 +100,34 @@ New file needed?
   │        ├─ hooks/                  # Shared hooks
   │        ├─ types/                  # Shared types
   │        ├─ utils/                  # Shared utilities
+  │        ├─ pages/                  # Pages shared across features (e.g. NotFound)
   │        └─ constants/businessRules.ts
   │
   └─ Used by exactly one feature?
      └─ → src/features/{name}/
            ├─ components/
            ├─ hooks/
-           └─ types/
+           ├─ types/
+           ├─ validations/
+           └─ pages/             # Pages that belong to this feature
+```
+
+### Pages Placement Rule
+
+Pages follow the same scope rule as all other files:
+
+| Situation | Location |
+| --- | --- |
+| Page belongs to a single feature | `src/features/{name}/pages/` |
+| Page is shared / not feature-specific (e.g. `NotFound`, `Landing`) | `src/shared/pages/` |
+
+```typescript
+// ✅ feature-specific page
+src/features/auth/pages/Login.tsx
+src/features/kanban/pages/Dashboard.tsx
+
+// ✅ shared page (no single owner)
+src/shared/pages/NotFound.tsx
 ```
 
 ### Project Structure Reference
@@ -121,18 +142,24 @@ src/
 │   ├── hooks/                  # Shared hooks
 │   ├── types/                  # Shared TypeScript types
 │   ├── utils/                  # Utility functions
+│   ├── pages/                  # Shared pages (NotFound, etc.)
 │   └── constants/
 │       └── businessRules.ts    # ⚠️ ALL CONSTANTS HERE
 │
 ├── features/                   # 📦 LOCAL (feature-specific)
 │   ├── auth/
-│   ├── price-comparison/
-│   ├── product-search/
-│   └── user-preferences/
+│   │   ├── components/
+│   │   └── pages/              # Login, Register, etc.
+│   └── kanban/
+│       ├── components/
+│       ├── hooks/
+│       ├── store/
+│       ├── types/
+│       ├── validations/
+│       └── pages/              # Dashboard, etc.
 │
 ├── context/                    # React Context providers
-├── infrastructure/             # Sentry, error handling
-└── data/                       # Mock data (temporary)
+└── infrastructure/             # Supabase, queryClient, external services
 ```
 
 ---
