@@ -78,23 +78,12 @@ export function StoryCard({ story }: StoryCardProps) {
               <Package className="h-4 w-4" />
               <span className="font-medium">Artefactos:</span>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {story.artifacts.map((artifact) => (
-                <Badge
-                  key={artifact.id}
-                  variant="secondary"
-                  className="text-xs font-mono"
-                >
-                  {artifact.name} {artifact.version}
-                </Badge>
-              ))}
-            </div>
             {artifactsV2.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {artifactsV2.map((artifact) => (
                   <Badge
                     key={artifact.id}
-                    variant={artifact.type === "FRONT" ? "front" : "back"}
+                    variant={"secondary"}
                     className="text-xs font-mono"
                   >
                     {artifact.name}

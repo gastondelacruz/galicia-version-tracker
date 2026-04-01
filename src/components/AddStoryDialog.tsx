@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,24 +22,22 @@ import {
   useCreateStory,
   useUsers,
 } from "@/hooks/use-stories";
-import { Artifact, ArtifactV2 } from "@/types";
+import { ArtifactV2 } from "@/types";
 import { StoryFormData, storySchema } from "@/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
-import { ArtifactV2Selector } from "./ArtifactV2Selector";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { ArtifactV2Selector } from "./ArtifactV2Selector";
 
 export function AddStoryDialog() {
   const [open, setOpen] = useState(false);
+
   const {
     register,
     handleSubmit,
-    setValue,
-    getValues,
     reset,
     control,
-    watch,
     formState: { errors },
   } = useForm<StoryFormData>({
     resolver: zodResolver(storySchema),
@@ -48,41 +45,14 @@ export function AddStoryDialog() {
       name: "",
       assignedTo: "",
       environment: "readyToDev",
-      artifacts: [],
-      artifactName: "",
-      artifactVersion: "",
       type: "FRONT",
+      artifactsV2: [],
     },
   });
-
-  const [selectedArtifactsV2, setSelectedArtifactsV2] = useState<ArtifactV2[]>([]);
 
   const { data: users = [] } = useUsers();
   const { mutate: createStory, isPending: isUpdating } = useCreateStory();
   const { mutate: addStoryArtifact } = useAddStoryArtifactV2();
-
-  const artifacts = watch("artifacts");
-
-  const handleAddArtifact = () => {
-    const artifactName = getValues("artifactName");
-    const artifactVersion = getValues("artifactVersion");
-    if (artifactName && artifactVersion) {
-      const newArtifact: Artifact = {
-        name: artifactName,
-        version: artifactVersion,
-      };
-      const currentArtifacts = getValues("artifacts");
-      setValue("artifacts", [...currentArtifacts, newArtifact]);
-      setValue("artifactName", "");
-      setValue("artifactVersion", "");
-    }
-  };
-
-  const handleRemoveArtifact = (index: number) => {
-    const currentArtifacts = [...(getValues("artifacts") || [])];
-    currentArtifacts.splice(index, 1);
-    setValue("artifacts", currentArtifacts);
-  };
 
   const handleSave = (data: StoryFormData) => {
     createStory(
@@ -93,15 +63,13 @@ export function AddStoryDialog() {
           environment: data.environment,
           type: data.type,
         },
-        artifacts: data.artifacts,
       },
       {
         onSuccess: (story) => {
-          selectedArtifactsV2.forEach((a) =>
+          data.artifactsV2.forEach((a) =>
             addStoryArtifact({ storyId: story.id, artifactId: a.id! }),
           );
           reset();
-          setSelectedArtifactsV2([]);
           setOpen(false);
         },
       },
@@ -110,10 +78,7 @@ export function AddStoryDialog() {
 
   const handleDialogOpenChange = (open: boolean) => {
     setOpen(open);
-    if (!open) {
-      reset();
-      setSelectedArtifactsV2([]);
-    }
+    if (!open) reset();
   };
 
   return (
@@ -232,54 +197,16 @@ export function AddStoryDialog() {
               )}
             </div>
 
-            <div className="grid gap-2">
-              <Label>Artefactos</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Nombre del artefacto"
-                  {...register("artifactName")}
+            <Controller
+              name="artifactsV2"
+              control={control}
+              render={({ field }) => (
+                <ArtifactV2Selector
+                  selected={field.value as ArtifactV2[]}
+                  onChange={field.onChange}
+                  error={errors.artifactsV2?.message}
                 />
-                <Input
-                  placeholder="Versión"
-                  {...register("artifactVersion")}
-                  className="w-32"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddArtifact}
-                  variant="secondary"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {artifacts.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {artifacts.map((artifact, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {artifact.name} {artifact.version}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveArtifact(index)}
-                        className="ml-2 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
               )}
-              {errors.artifacts && (
-                <p className="text-sm text-red-500">
-                  {errors.artifacts.message}
-                </p>
-              )}
-            </div>
-
-            <hr className="border-border" />
-
-            <ArtifactV2Selector
-              selected={selectedArtifactsV2}
-              onChange={setSelectedArtifactsV2}
             />
           </div>
           <DialogFooter>

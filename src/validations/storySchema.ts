@@ -22,10 +22,16 @@ export const storySchema = z.object({
     "readyToQas",
     "readyToProd",
   ]),
-  artifacts: z.array(artifactSchema).min(1, "Al menos un debe ser agregado"),
-  artifactName: z.string().optional(),
-  artifactVersion: z.string().optional(),
   type: z.enum(["FRONT", "BACK"]),
+  artifactsV2: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        name: z.string().min(1),
+        type: z.enum(["FRONT", "BACK"]),
+      })
+    )
+    .min(1, "Debe seleccionar al menos un artefacto"),
 });
 
 export type StoryFormData = z.infer<typeof storySchema>;

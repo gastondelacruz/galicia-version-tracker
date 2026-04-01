@@ -9,9 +9,10 @@ import { useState } from "react";
 interface ArtifactV2SelectorProps {
   selected: ArtifactV2[];
   onChange: (artifacts: ArtifactV2[]) => void;
+  error?: string;
 }
 
-export function ArtifactV2Selector({ selected, onChange }: ArtifactV2SelectorProps) {
+export function ArtifactV2Selector({ selected, onChange, error }: ArtifactV2SelectorProps) {
   const [search, setSearch] = useState("");
   const { data: allArtifacts = [] } = useArtifactsV2();
 
@@ -32,7 +33,7 @@ export function ArtifactV2Selector({ selected, onChange }: ArtifactV2SelectorPro
 
   return (
     <div className="grid gap-2">
-      <Label>Artefactos (v2)</Label>
+      <Label>Artefactos</Label>
       <Input
         placeholder="Buscar artefacto..."
         value={search}
@@ -55,6 +56,9 @@ export function ArtifactV2Selector({ selected, onChange }: ArtifactV2SelectorPro
       )}
       {search && filtered.length === 0 && (
         <p className="text-xs text-muted-foreground">Sin resultados.</p>
+      )}
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
       )}
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-1">

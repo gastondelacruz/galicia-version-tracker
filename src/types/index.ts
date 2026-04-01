@@ -27,8 +27,3 @@ export interface Story {
   type: "FRONT" | "BACK";
   created_at: string;
 }
-
-export interface StoryWithDetails extends Story {
-  assigned_user: Person;
-  artifacts: Artifact[];
-}
