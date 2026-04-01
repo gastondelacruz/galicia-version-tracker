@@ -285,9 +285,9 @@ Writing a test?
 ## Commands
 
 ```bash
-pnpm test:run        # Run all tests once (CI mode)
-pnpm test            # Run tests in watch mode
-pnpm test:run --reporter=verbose   # Verbose output
+npm test:run        # Run all tests once (CI mode)
+npm test            # Run tests in watch mode
+npm test:run --reporter=verbose   # Verbose output
 ```
 
 ---

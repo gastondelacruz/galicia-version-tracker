@@ -179,17 +179,17 @@ src/
 Before marking any task as done, run:
 
 ```bash
-pnpm verify
+npm verify
 ```
 
 This executes in sequence:
 
-1. `pnpm lint` — 0 errors, no critical warnings
-2. `pnpm security` — no moderate+ vulnerabilities
-3. `pnpm build` — 0 TypeScript errors, successful build
-4. `pnpm test:run` — all tests pass
+1. `npm lint` — 0 errors, no critical warnings
+2. `npm security` — no moderate+ vulnerabilities
+3. `npm build` — 0 TypeScript errors, successful build
+4. `npm test:run` — all tests pass
 
-**A task is NOT complete until `pnpm verify` passes.**
+**A task is NOT complete until `npm verify` passes.**
 
 ---
 

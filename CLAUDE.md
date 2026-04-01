@@ -24,6 +24,7 @@ Use these skills for detailed patterns on-demand:
 | `react-hook-form` | Form handling with React Hook Form + Zod                | [SKILL.md](skills/react-hook-form/SKILL.md) |
 | `tailwind`        | Tailwind CSS utility-first styling patterns             | [SKILL.md](skills/tailwind/SKILL.md)        |
 | `typescript`      | TypeScript strict patterns and type-safety              | [SKILL.md](skills/typescript/SKILL.md)      |
+| `commit`          | Commit conventions, message format and PR guidelines    | [SKILL.md](skills/commit/SKILL.md)          |
 
 ### Auto-invoke Skills
 
@@ -39,6 +40,7 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Making API calls / managing server state    | `tanstack-query`  |
 | Building forms with validation              | `react-hook-form` |
 | Styling components with utility classes     | `tailwind`        |
+| Creating a commit or pull request           | `commit`          |
 
 ---
 
@@ -212,47 +214,6 @@ it("calls useState with false", () => {
 
 **Never** use `allowExportNames` workaround.
 
-### Git Hooks
-
-- Husky is configured
-- Run `git init` BEFORE `husky init`
-
----
-
-## 📝 Commit & Pull Request Guidelines
-
-### ⚠️ IMPORTANT: Commits Require Explicit User Request
-
-**🔴 NEVER create commits automatically**. Only commit when the user explicitly requests it with a command like:
-
-- "Create a commit"
-- "Commit these changes"
-- "Make a commit with..."
-- "Commit the work"
-
-Otherwise, simply complete the work and report the status. The user will decide when to commit.
-
-### Commit Style (When Requested)
-
-Follow conventional-commit style: `<type>[scope]: <description>`
-
-**Types**: `feat`, `fix`, `docs`, `chore`, `perf`, `refactor`, `style`, `test`
-
-**Examples**:
-
-- `feat(search): add product filtering by price range`
-- `fix(compare): handle null values in price display`
-- `test(components): add behavior tests for ProductCard`
-- `refactor(hooks): simplify useProductData hook`
-
-Before creating a PR:
-
-1. Run `npm verify` — all checks must pass
-2. Ensure commit messages follow conventions
-3. Link related issues or PRs
-
----
-
 ## 🔄 Workflow Summary
 
 1. **Understand** the requested change
@@ -278,7 +239,7 @@ Before creating a PR:
 ## 🚨 Critical Rules (Never Violate)
 
 1. 🔴 **NO AUTO-COMMIT**: Never create commits unless the user explicitly requests it
-2. ✅ **Validate Before Complete**: Run `pnpm verify` — all checks must pass before reporting done
+2. ✅ **Validate Before Complete**: Run `npm verify` — all checks must pass before reporting done
 3. 🚫 **No `any` type**: Use `unknown`, proper types, or generics instead
 4. 📌 **Constants Only**: Never hardcode business values — always use `businessRules.ts`
 5. 🧩 **UI Components = Presentation Only**: Extract logic to custom hooks or services
