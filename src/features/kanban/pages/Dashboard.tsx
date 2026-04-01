@@ -1,8 +1,8 @@
-import { AddArtifactDialog } from "@/features/kanban/components/AddArtifactDialog";
-import { AddUserDialog } from "@/features/kanban/components/AddUserDialog";
-import { AddStoryDialog } from "@/features/kanban/components/AddStoryDialog";
+import { AddArtifactDialog } from "@/features/artifacts/components/AddArtifactDialog";
+import { AddUserDialog } from "@/features/users/components/AddUserDialog";
+import { AddStoryDialog } from "@/features/stories/components/AddStoryDialog";
 import { KanbanBoard } from "@/features/kanban/components/KanbanBoard";
-import { PersonFilter } from "@/features/kanban/components/PersonFilter";
+import { PersonFilter } from "@/features/users/components/PersonFilter";
 import { Button } from "@/shared/components/ui/button";
 import { toast } from "@/shared/hooks/use-toast";
 import { supabase } from "@/infrastructure/supabaseClient";

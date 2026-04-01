@@ -1,7 +1,7 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { useArtifacts } from "@/features/kanban/hooks/use-stories";
+import { useArtifacts } from "@/features/artifacts/hooks/use-artifacts";
 import { Artifact } from "@/shared/types";
 import { X } from "lucide-react";
 import { useState } from "react";

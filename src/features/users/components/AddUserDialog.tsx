@@ -8,52 +8,38 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select";
-import {
-  useArtifacts,
-  useCreateArtifact,
-  useDeleteArtifact,
-  useUpdateArtifact,
-} from "@/features/kanban/hooks/use-stories";
+  useCreateUser,
+  useDeleteUser,
+  useUpdateUser,
+  useUsers,
+} from "@/features/users/hooks/use-users";
 import { toast } from "@/shared/hooks/use-toast";
-import { Artifact } from "@/shared/types";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Person } from "@/shared/types";
+import { Check, Pencil, Plus, Trash2, Users, X } from "lucide-react";
 import { useState } from "react";
 
-export function AddArtifactDialog() {
+export function AddUserDialog() {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<"FRONT" | "BACK">("BACK");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterName, setFilterName] = useState("");
-  const [filterType, setFilterType] = useState<"ALL" | "FRONT" | "BACK">("ALL");
   const [editingName, setEditingName] = useState("");
-  const [editingType, setEditingType] = useState<"FRONT" | "BACK">("BACK");
 
-  const { data: artifacts = [], isLoading } = useArtifacts();
-  const { mutate: createArtifact, isPending: isCreating } =
-    useCreateArtifact();
-  const { mutate: updateArtifact, isPending: isUpdating } =
-    useUpdateArtifact();
-  const { mutate: deleteArtifact } = useDeleteArtifact();
+  const { data: users = [], isLoading } = useUsers();
+  const { mutate: createUser, isPending: isCreating } = useCreateUser();
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
+  const { mutate: deleteUser } = useDeleteUser();
 
-  const filteredArtifacts = artifacts.filter((a) => {
-    const matchesName = a.name.toLowerCase().includes(filterName.toLowerCase());
-    const matchesType = filterType === "ALL" || a.type === filterType;
-    return matchesName && matchesType;
-  });
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(filterName.toLowerCase()),
+  );
 
   const nameExists = (name: string, excludeId?: string) =>
-    artifacts.some(
-      (a) =>
-        a.name.toLowerCase() === name.trim().toLowerCase() &&
-        a.id !== excludeId,
+    users.some(
+      (u) =>
+        u.name.toLowerCase() === name.trim().toLowerCase() &&
+        u.id !== excludeId,
     );
 
   const handleCreate = () => {
@@ -67,13 +53,12 @@ export function AddArtifactDialog() {
       });
       return;
     }
-    createArtifact(
-      { name: trimmed, type: newType },
+    createUser(
+      { name: trimmed },
       {
         onSuccess: () => {
           setNewName("");
-          setNewType("BACK");
-          toast({ title: "Éxito", description: "Artefacto creado" });
+          toast({ title: "Éxito", description: "Usuario creado" });
         },
         onError: () =>
           toast({
@@ -85,10 +70,9 @@ export function AddArtifactDialog() {
     );
   };
 
-  const handleStartEdit = (artifact: Artifact) => {
-    setEditingId(artifact.id!);
-    setEditingName(artifact.name);
-    setEditingType(artifact.type);
+  const handleStartEdit = (user: Person) => {
+    setEditingId(user.id);
+    setEditingName(user.name);
   };
 
   const handleConfirmEdit = (id: string) => {
@@ -102,12 +86,12 @@ export function AddArtifactDialog() {
       });
       return;
     }
-    updateArtifact(
-      { id, name: trimmed, type: editingType },
+    updateUser(
+      { id, name: trimmed },
       {
         onSuccess: () => {
           setEditingId(null);
-          toast({ title: "Éxito", description: "Artefacto actualizado" });
+          toast({ title: "Éxito", description: "Usuario actualizado" });
         },
         onError: () =>
           toast({
@@ -121,7 +105,7 @@ export function AddArtifactDialog() {
 
   const handleDelete = (id: string, name: string) => {
     setDeletingId(id);
-    deleteArtifact(id, {
+    deleteUser(id, {
       onSuccess: () => {
         setDeletingId(null);
         toast({ title: "Éxito", description: `"${name}" eliminado` });
@@ -141,12 +125,9 @@ export function AddArtifactDialog() {
     setOpen(value);
     if (!value) {
       setNewName("");
-      setNewType("BACK");
       setFilterName("");
-      setFilterType("ALL");
       setEditingId(null);
       setEditingName("");
-      setEditingType("BACK");
       setDeletingId(null);
     }
   };
@@ -154,39 +135,27 @@ export function AddArtifactDialog() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="lg" className="shadow-lg" variant="terciary">
-          <Pencil className="mr-2 h-5 w-5" />
-          Artefactos
+        <Button size="lg" className="shadow-lg" variant="terciaryv2">
+          <Users className="mr-2 h-5 w-5" />
+          Usuarios
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Gestión de Artefactos</DialogTitle>
+          <DialogTitle>Gestión de Usuarios</DialogTitle>
         </DialogHeader>
 
-        {/* Nuevo artefacto */}
+        {/* Nuevo usuario */}
         <p className="text-sm font-medium text-muted-foreground">
-          Agregar Artefacto nuevo
+          Agregar Usuario nuevo
         </p>
         <div className="flex gap-2">
           <Input
-            placeholder="Nombre del artefacto"
+            placeholder="Nombre del usuario"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
           />
-          <Select
-            value={newType}
-            onValueChange={(v) => setNewType(v as "FRONT" | "BACK")}
-          >
-            <SelectTrigger className="w-[110px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="FRONT">FRONT</SelectItem>
-              <SelectItem value="BACK">BACK</SelectItem>
-            </SelectContent>
-          </Select>
           <Button
             onClick={handleCreate}
             disabled={isCreating || !newName.trim()}
@@ -197,34 +166,17 @@ export function AddArtifactDialog() {
 
         <hr className="border-border" />
 
-        {artifacts.length > 0 && (
+        {users.length > 0 && (
           <>
             {/* Filtros */}
             <p className="text-sm font-medium text-muted-foreground">
               Filtros de listado
             </p>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Buscar por nombre..."
-                value={filterName}
-                onChange={(e) => setFilterName(e.target.value)}
-              />
-              <Select
-                value={filterType}
-                onValueChange={(v) =>
-                  setFilterType(v as "ALL" | "FRONT" | "BACK")
-                }
-              >
-                <SelectTrigger className="w-[110px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Todos</SelectItem>
-                  <SelectItem value="FRONT">FRONT</SelectItem>
-                  <SelectItem value="BACK">BACK</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Input
+              placeholder="Buscar por nombre..."
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+            />
 
             {/* Listado */}
             <div className="max-h-[360px] overflow-y-auto space-y-1 mt-2">
@@ -233,50 +185,35 @@ export function AddArtifactDialog() {
                   Cargando...
                 </p>
               )}
-              {!isLoading && filteredArtifacts.length === 0 && (
+              {!isLoading && filteredUsers.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  {artifacts.length === 0
-                    ? "No hay artefactos creados aún."
+                  {users.length === 0
+                    ? "No hay usuarios creados aún."
                     : "No hay resultados."}
                 </p>
               )}
-              {filteredArtifacts.map((artifact) => (
+              {filteredUsers.map((user) => (
                 <div
-                  key={artifact.id}
+                  key={user.id}
                   className="flex items-center gap-2 px-3 py-2 rounded-md border bg-card"
                 >
-                  {editingId === artifact.id ? (
+                  {editingId === user.id ? (
                     <>
                       <Input
                         className="h-7 text-sm flex-1"
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                            handleConfirmEdit(artifact.id!);
+                          if (e.key === "Enter") handleConfirmEdit(user.id);
                           if (e.key === "Escape") setEditingId(null);
                         }}
                         autoFocus
                       />
-                      <Select
-                        value={editingType}
-                        onValueChange={(v) =>
-                          setEditingType(v as "FRONT" | "BACK")
-                        }
-                      >
-                        <SelectTrigger className="h-7 w-[100px] text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="FRONT">FRONT</SelectItem>
-                          <SelectItem value="BACK">BACK</SelectItem>
-                        </SelectContent>
-                      </Select>
                       <Button
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7"
-                        onClick={() => handleConfirmEdit(artifact.id!)}
+                        onClick={() => handleConfirmEdit(user.id)}
                         disabled={isUpdating}
                       >
                         <Check className="h-4 w-4 text-green-500" />
@@ -292,15 +229,12 @@ export function AddArtifactDialog() {
                     </>
                   ) : (
                     <>
-                      <span className="flex-1 text-sm">{artifact.name}</span>
-                      <span className="text-xs text-muted-foreground w-10">
-                        {artifact.type}
-                      </span>
+                      <span className="flex-1 text-sm">{user.name}</span>
                       <Button
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7"
-                        onClick={() => handleStartEdit(artifact)}
+                        onClick={() => handleStartEdit(user)}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -308,10 +242,8 @@ export function AddArtifactDialog() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7"
-                        onClick={() =>
-                          handleDelete(artifact.id!, artifact.name)
-                        }
-                        disabled={deletingId === artifact.id}
+                        onClick={() => handleDelete(user.id, user.name)}
+                        disabled={deletingId === user.id}
                       >
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>

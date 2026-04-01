@@ -5,7 +5,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
-import { useUsers } from "@/features/kanban/hooks/use-stories";
+import { useUsers } from "@/features/users/hooks/use-users";
 import { useKanbanStore } from "@/features/kanban/store/kanbanStore";
 import { ChevronDown, X } from "lucide-react";
 

@@ -1,7 +1,7 @@
 import {
   useStoriesWithDetails,
   useUpdateStoryBasicInfo,
-} from "@/features/kanban/hooks/use-stories";
+} from "@/features/stories/hooks/use-stories";
 import { useKanbanStore } from "@/features/kanban/store/kanbanStore";
 import {
   closestCorners,

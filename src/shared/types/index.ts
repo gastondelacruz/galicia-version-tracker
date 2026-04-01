@@ -20,3 +20,7 @@ export interface Story {
   type: "FRONT" | "BACK";
   created_at: string;
 }
+
+export type StoryWithDetails = Story & {
+  assigned_user: Pick<Person, "id" | "name" | "created_at"> | null;
+};

@@ -1,7 +1,7 @@
 import { cn } from "@/shared/utils/utils";
 import { StoryWithDetails } from "@/shared/types";
 import { useDroppable } from "@dnd-kit/core";
-import { StoryCard } from "./StoryCard";
+import { StoryCard } from "@/features/stories/components/StoryCard";
 
 interface KanbanColumnProps {
   id: "readyToDev" | "dev" | "readyToQas" | "qas" | "readyToProd";

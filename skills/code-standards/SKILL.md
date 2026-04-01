@@ -148,15 +148,22 @@ src/
 │
 ├── features/                   # 📦 LOCAL (feature-specific)
 │   ├── auth/
-│   │   ├── components/
 │   │   └── pages/              # Login, Register, etc.
+│   ├── stories/
+│   │   ├── components/         # AddStoryDialog, EditStoryDialog, StoryCard
+│   │   ├── hooks/              # use-stories.ts
+│   │   └── validations/        # storySchema.ts
+│   ├── artifacts/
+│   │   ├── components/         # AddArtifactDialog, ArtifactSelector
+│   │   ├── hooks/              # use-artifacts.ts
+│   │   └── validations/        # artifactSchema.ts
+│   ├── users/
+│   │   ├── components/         # AddUserDialog, PersonFilter
+│   │   └── hooks/              # use-users.ts
 │   └── kanban/
-│       ├── components/
-│       ├── hooks/
-│       ├── store/
-│       ├── types/
-│       ├── validations/
-│       └── pages/              # Dashboard, etc.
+│       ├── components/         # KanbanBoard, KanbanColumn (solo el board)
+│       ├── store/              # kanbanStore.ts
+│       └── pages/              # Dashboard.tsx
 │
 ├── context/                    # React Context providers
 └── infrastructure/             # Supabase, queryClient, external services

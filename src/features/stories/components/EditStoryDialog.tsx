@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -6,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -19,19 +28,35 @@ import {
 } from "@/shared/components/ui/select";
 import {
   useAddStoryArtifact,
-  useCreateStory,
-  useUsers,
-} from "@/features/kanban/hooks/use-stories";
-import { Artifact } from "@/shared/types";
-import { StoryFormData, storySchema } from "@/features/kanban/validations/storySchema";
+  useRemoveStoryArtifact,
+  useStoryArtifacts,
+} from "@/features/artifacts/hooks/use-artifacts";
+import {
+  useDeleteStory,
+  useUpdateStory,
+} from "@/features/stories/hooks/use-stories";
+import { useUsers } from "@/features/users/hooks/use-users";
+import { useToast } from "@/shared/hooks/use-toast";
+import { Artifact, Story } from "@/shared/types";
+import { ArtifactSelector } from "@/features/artifacts/components/ArtifactSelector";
+import { StoryFormData, storySchema } from "@/features/stories/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ArtifactSelector } from "./ArtifactSelector";
 
-export function AddStoryDialog() {
-  const [open, setOpen] = useState(false);
+interface EditStoryDialogProps {
+  story: Story;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function EditStoryDialog({
+  story,
+  open,
+  onOpenChange,
+}: EditStoryDialogProps) {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const {
     register,
@@ -42,22 +67,39 @@ export function AddStoryDialog() {
   } = useForm<StoryFormData>({
     resolver: zodResolver(storySchema),
     defaultValues: {
-      name: "",
-      assignedTo: "",
-      environment: "readyToDev",
-      type: "FRONT",
+      name: story.name,
+      assignedTo: story.assigned_to,
+      environment: story.environment as "dev" | "qas",
+      type: story.type,
       artifacts: [],
     },
   });
 
   const { data: users = [] } = useUsers();
-  const { mutate: createStory, isPending: isUpdating } = useCreateStory();
-  const { mutate: addStoryArtifact } = useAddStoryArtifact();
+  const { data: existingArtifacts = [] } = useStoryArtifacts(story.id);
+  const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
+  const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
+  const { mutate: addArtifact } = useAddStoryArtifact();
+  const { mutate: removeArtifact } = useRemoveStoryArtifact();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!open) return;
+    reset({
+      name: story.name,
+      assignedTo: story.assigned_to,
+      environment: story.environment as "dev" | "qas",
+      type: story.type,
+      artifacts: existingArtifacts,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story.id, open]);
 
   const handleSave = (data: StoryFormData) => {
-    createStory(
+    updateStory(
       {
-        story: {
+        id: story.id,
+        updates: {
           name: data.name,
           assigned_to: data.assignedTo,
           environment: data.environment,
@@ -65,36 +107,61 @@ export function AddStoryDialog() {
         },
       },
       {
-        onSuccess: (story) => {
-          data.artifacts.forEach((a) =>
-            addStoryArtifact({ storyId: story.id, artifactId: a.id! }),
+        onSuccess: () => {
+          const selected = data.artifacts as Artifact[];
+          const toAdd = selected.filter(
+            (a) => !existingArtifacts.some((e) => e.id === a.id),
           );
-          reset();
-          setOpen(false);
+          const toRemove = existingArtifacts.filter(
+            (e) => !selected.some((a) => a.id === e.id),
+          );
+          toAdd.forEach((a) =>
+            addArtifact({ storyId: story.id, artifactId: a.id! }),
+          );
+          toRemove.forEach((a) =>
+            removeArtifact({ storyId: story.id, artifactId: a.id! }),
+          );
+
+          toast({
+            title: "Historia actualizada",
+            description: "Los cambios se guardaron correctamente.",
+          });
+          onOpenChange(false);
         },
       },
     );
   };
 
-  const handleDialogOpenChange = (open: boolean) => {
-    setOpen(open);
-    if (!open) reset();
+  const handleDelete = () => {
+    deleteStory(
+      { storyId: story.id },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Historia eliminada",
+            description: "La historia se eliminó correctamente.",
+            variant: "destructive",
+          });
+          onOpenChange(false);
+          setShowDeleteAlert(false);
+        },
+      },
+    );
+  };
+
+  const handleOpenChange = (value: boolean) => {
+    if (!value) setShowDeleteAlert(false);
+    onOpenChange(value);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="lg" className="shadow-lg">
-          <Plus className="mr-2 h-5 w-5" />
-          Nueva Historia
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <form onSubmit={handleSubmit(handleSave)}>
           <DialogHeader>
-            <DialogTitle>Crear Nueva Historia</DialogTitle>
+            <DialogTitle>Editar Historia</DialogTitle>
             <DialogDescription>
-              Completa los detalles de la historia y los artefactos afectados.
+              Modifica los detalles de la historia y los artefactos afectados.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -146,12 +213,9 @@ export function AddStoryDialog() {
                 name="environment"
                 control={control}
                 render={({ field }) => (
-                  <Select
-                    value={field.value || ""}
-                    onValueChange={field.onChange}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger id="environment">
-                      <SelectValue placeholder="Selecciona un ambiente" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="readyToDev">LISTO PARA DEV</SelectItem>
@@ -165,11 +229,6 @@ export function AddStoryDialog() {
                   </Select>
                 )}
               />
-              {errors.environment && (
-                <p className="text-sm text-red-500">
-                  {errors.environment.message}
-                </p>
-              )}
             </div>
 
             <div className="grid gap-2">
@@ -209,21 +268,56 @@ export function AddStoryDialog() {
               )}
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isUpdating}
+              variant="destructive"
+              onClick={() => setShowDeleteAlert(true)}
+              className="sm:mr-auto"
+              disabled={isUpdating || isDeleting}
             >
-              Cancelar
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? "Eliminando..." : "Eliminar"}
             </Button>
-            <Button type="submit" disabled={isUpdating}>
-              {isUpdating ? "Creando..." : "Crear Historia"}
-            </Button>
+            <div className="flex gap-2 sm:ml-auto">
+              <Button
+                disabled={isUpdating || isDeleting}
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancelar
+              </Button>
+              <Button disabled={isUpdating} type="submit">
+                Guardar Cambios
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente la
+              historia
+              <span className="font-semibold"> "{story.name}"</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

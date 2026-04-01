@@ -1,11 +1,12 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { useStoryArtifacts, useUsers } from "@/features/kanban/hooks/use-stories";
+import { useStoryArtifacts } from "@/features/artifacts/hooks/use-artifacts";
+import { useUsers } from "@/features/users/hooks/use-users";
 import { Story } from "@/shared/types";
 import { useDraggable } from "@dnd-kit/core";
 import { Container, Package, User } from "lucide-react";
 import { useState } from "react";
-import { EditStoryDialog } from "./EditStoryDialog";
+import { EditStoryDialog } from "@/features/stories/components/EditStoryDialog";
 
 interface StoryCardProps {
   story: Story;
