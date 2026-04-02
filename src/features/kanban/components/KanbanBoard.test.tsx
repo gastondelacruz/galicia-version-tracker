@@ -3,13 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { KanbanBoard } from "./KanbanBoard";
 import { Story } from "@/shared/types";
+import type { ReactNode } from "react";
 import { useKanbanStore } from "@/features/kanban/store/kanbanStore";
 
 vi.mock("@dnd-kit/core", async () => {
   const actual = await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
   return {
     ...actual,
-    DndContext: ({ children }: { children: React.ReactNode }) => (
+    DndContext: ({ children }: { children: ReactNode }) => (
       <div data-testid="dnd-context">{children}</div>
     ),
     useSensor: vi.fn(() => ({})),

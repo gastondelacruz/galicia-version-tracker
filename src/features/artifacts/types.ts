@@ -1,6 +1,7 @@
+import { FILTER_ALL } from "@/shared/constants/businessRules";
 import type { Artifact, ArtifactType } from "@/shared/types";
 
-export type ArtifactFilterType = "ALL" | ArtifactType;
+export type ArtifactFilterType = typeof FILTER_ALL | ArtifactType;
 
 export type UseAddArtifactDialogReturn = {
   // Dialog

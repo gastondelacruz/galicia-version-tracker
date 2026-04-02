@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { useAddArtifactDialog } from "@/features/artifacts/hooks/use-add-artifact-dialog";
+import { FILTER_ALL } from "@/shared/constants/businessRules";
 import { Artifact } from "@/shared/types";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
 
@@ -109,14 +110,14 @@ export function AddArtifactDialog(): JSX.Element {
               <Select
                 value={filterType}
                 onValueChange={(v) =>
-                  setFilterType(v as "ALL" | Artifact["type"])
+                  setFilterType(v as typeof FILTER_ALL | Artifact["type"])
                 }
               >
                 <SelectTrigger className="w-[110px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Todos</SelectItem>
+                  <SelectItem value={FILTER_ALL}>Todos</SelectItem>
                   <SelectItem value="FRONT">FRONT</SelectItem>
                   <SelectItem value="BACK">BACK</SelectItem>
                 </SelectContent>

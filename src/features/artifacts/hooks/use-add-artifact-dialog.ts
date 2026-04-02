@@ -8,6 +8,7 @@ import type {
   ArtifactFilterType,
   UseAddArtifactDialogReturn,
 } from "@/features/artifacts/types";
+import { FILTER_ALL } from "@/shared/constants/businessRules";
 import { toast } from "@/shared/hooks/use-toast";
 import { ARTIFACT_TYPE } from "@/shared/types";
 import type { Artifact, ArtifactType } from "@/shared/types";
@@ -18,7 +19,7 @@ export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState<ArtifactType>(ARTIFACT_TYPE.BACK);
   const [filterName, setFilterName] = useState("");
-  const [filterType, setFilterType] = useState<ArtifactFilterType>("ALL");
+  const [filterType, setFilterType] = useState<ArtifactFilterType>(FILTER_ALL);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingType, setEditingType] = useState<ArtifactType>(ARTIFACT_TYPE.BACK);
@@ -31,7 +32,7 @@ export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
 
   const filteredArtifacts = artifacts.filter((a) => {
     const matchesName = a.name.toLowerCase().includes(filterName.toLowerCase());
-    const matchesType = filterType === "ALL" || a.type === filterType;
+    const matchesType = filterType === FILTER_ALL || a.type === filterType;
     return matchesName && matchesType;
   });
 
@@ -129,7 +130,7 @@ export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
       setNewName("");
       setNewType(ARTIFACT_TYPE.BACK);
       setFilterName("");
-      setFilterType("ALL");
+      setFilterType(FILTER_ALL);
       setEditingId(null);
       setEditingName("");
       setEditingType(ARTIFACT_TYPE.BACK);
