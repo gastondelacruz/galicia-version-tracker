@@ -17,67 +17,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import { useAddStoryArtifact } from "@/features/artifacts/hooks/use-artifacts";
-import { useCreateStory } from "@/features/stories/hooks/use-stories";
-import { useUsers } from "@/features/users/hooks/use-users";
+import { useAddStoryDialog } from "@/features/stories/hooks/use-add-story-dialog";
 import { Artifact } from "@/shared/types";
-import { StoryFormData, storySchema } from "@/features/stories/validations/storySchema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { ArtifactSelector } from "@/features/artifacts/components/ArtifactSelector";
 
-export function AddStoryDialog() {
-  const [open, setOpen] = useState(false);
+export function AddStoryDialog(): JSX.Element {
+  const {
+    open,
+    handleDialogOpenChange,
+    form,
+    users,
+    isUpdating,
+    handleSave,
+  } = useAddStoryDialog();
 
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors },
-  } = useForm<StoryFormData>({
-    resolver: zodResolver(storySchema),
-    defaultValues: {
-      name: "",
-      assignedTo: "",
-      environment: "readyToDev",
-      type: "FRONT",
-      artifacts: [],
-    },
-  });
-
-  const { data: users = [] } = useUsers();
-  const { mutate: createStory, isPending: isUpdating } = useCreateStory();
-  const { mutate: addStoryArtifact } = useAddStoryArtifact();
-
-  const handleSave = (data: StoryFormData) => {
-    createStory(
-      {
-        story: {
-          name: data.name,
-          assigned_to: data.assignedTo,
-          environment: data.environment,
-          type: data.type,
-        },
-      },
-      {
-        onSuccess: (story) => {
-          data.artifacts.forEach((a) =>
-            addStoryArtifact({ storyId: story.id, artifactId: a.id! }),
-          );
-          reset();
-          setOpen(false);
-        },
-      },
-    );
-  };
-
-  const handleDialogOpenChange = (open: boolean) => {
-    setOpen(open);
-    if (!open) reset();
-  };
+  } = form;
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
@@ -211,7 +172,7 @@ export function AddStoryDialog() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleDialogOpenChange(false)}
               disabled={isUpdating}
             >
               Cancelar

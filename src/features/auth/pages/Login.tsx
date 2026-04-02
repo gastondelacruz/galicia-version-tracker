@@ -1,58 +1,9 @@
 import { Button } from "@/shared/components/ui/button";
-import { toast } from "@/shared/hooks/use-toast";
-import { supabase } from "@/infrastructure/supabaseClient";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLogin } from "@/features/auth/hooks/use-login";
 
-export const Login = () => {
-  const navigate = useNavigate();
+export function Login(): JSX.Element {
+  const { handleGoogleLogin } = useLogin();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/dashboard");
-      }
-    };
-    checkUser();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    }
-  };
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-secondary/30">
       <div className="w-full max-w-lg space-y-16 animate-in fade-in-50 duration-700 bg-card border-2 border-border rounded-lg p-16 shadow-sm">
@@ -95,4 +46,4 @@ export const Login = () => {
       </div>
     </div>
   );
-};
+}

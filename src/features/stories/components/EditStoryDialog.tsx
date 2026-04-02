@@ -26,133 +26,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import {
-  useAddStoryArtifact,
-  useRemoveStoryArtifact,
-  useStoryArtifacts,
-} from "@/features/artifacts/hooks/use-artifacts";
-import {
-  useDeleteStory,
-  useUpdateStory,
-} from "@/features/stories/hooks/use-stories";
-import { useUsers } from "@/features/users/hooks/use-users";
-import { useToast } from "@/shared/hooks/use-toast";
+import { useEditStoryDialog } from "@/features/stories/hooks/use-edit-story-dialog";
 import { Artifact, Story } from "@/shared/types";
 import { ArtifactSelector } from "@/features/artifacts/components/ArtifactSelector";
-import { StoryFormData, storySchema } from "@/features/stories/validations/storySchema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
-interface EditStoryDialogProps {
-  story: Story;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+type EditStoryDialogProps = {
+  readonly story: Story;
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+};
 
 export function EditStoryDialog({
   story,
   open,
   onOpenChange,
-}: EditStoryDialogProps) {
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+}: EditStoryDialogProps): JSX.Element {
+  const {
+    showDeleteAlert,
+    setShowDeleteAlert,
+    form,
+    users,
+    isUpdating,
+    isDeleting,
+    handleSave,
+    handleDelete,
+    handleOpenChange,
+  } = useEditStoryDialog({ story, open, onOpenChange });
 
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors },
-  } = useForm<StoryFormData>({
-    resolver: zodResolver(storySchema),
-    defaultValues: {
-      name: story.name,
-      assignedTo: story.assigned_to,
-      environment: story.environment as "dev" | "qas",
-      type: story.type,
-      artifacts: [],
-    },
-  });
-
-  const { data: users = [] } = useUsers();
-  const { data: existingArtifacts = [] } = useStoryArtifacts(story.id);
-  const { mutate: updateStory, isPending: isUpdating } = useUpdateStory();
-  const { mutate: deleteStory, isPending: isDeleting } = useDeleteStory();
-  const { mutate: addArtifact } = useAddStoryArtifact();
-  const { mutate: removeArtifact } = useRemoveStoryArtifact();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (!open) return;
-    reset({
-      name: story.name,
-      assignedTo: story.assigned_to,
-      environment: story.environment as "dev" | "qas",
-      type: story.type,
-      artifacts: existingArtifacts,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [story.id, open]);
-
-  const handleSave = (data: StoryFormData) => {
-    updateStory(
-      {
-        id: story.id,
-        updates: {
-          name: data.name,
-          assigned_to: data.assignedTo,
-          environment: data.environment,
-          type: data.type,
-        },
-      },
-      {
-        onSuccess: () => {
-          const selected = data.artifacts as Artifact[];
-          const toAdd = selected.filter(
-            (a) => !existingArtifacts.some((e) => e.id === a.id),
-          );
-          const toRemove = existingArtifacts.filter(
-            (e) => !selected.some((a) => a.id === e.id),
-          );
-          toAdd.forEach((a) =>
-            addArtifact({ storyId: story.id, artifactId: a.id! }),
-          );
-          toRemove.forEach((a) =>
-            removeArtifact({ storyId: story.id, artifactId: a.id! }),
-          );
-
-          toast({
-            title: "Historia actualizada",
-            description: "Los cambios se guardaron correctamente.",
-          });
-          onOpenChange(false);
-        },
-      },
-    );
-  };
-
-  const handleDelete = () => {
-    deleteStory(
-      { storyId: story.id },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Historia eliminada",
-            description: "La historia se eliminó correctamente.",
-            variant: "destructive",
-          });
-          onOpenChange(false);
-          setShowDeleteAlert(false);
-        },
-      },
-    );
-  };
-
-  const handleOpenChange = (value: boolean) => {
-    if (!value) setShowDeleteAlert(false);
-    onOpenChange(value);
-  };
+  } = form;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>

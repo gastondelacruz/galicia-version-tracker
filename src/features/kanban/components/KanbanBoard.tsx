@@ -1,75 +1,19 @@
-import {
-  useStoriesWithDetails,
-  useUpdateStoryBasicInfo,
-} from "@/features/stories/hooks/use-stories";
-import { useKanbanStore } from "@/features/kanban/store/kanbanStore";
-import {
-  closestCorners,
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { useMemo } from "react";
+import { useKanbanBoard } from "@/features/kanban/hooks/use-kanban-board";
+import { closestCorners, DndContext } from "@dnd-kit/core";
 import { KanbanColumn } from "./KanbanColumn";
 import { Loader } from "@/shared/components/ui/Loader";
-import { Story } from "@/shared/types";
 
-export function KanbanBoard() {
-  const { data: allStories = [], isLoading: storiesLoading } =
-    useStoriesWithDetails();
-  const filteredUsers = useKanbanStore((state) => state.filteredUsers);
-  const { mutate: updateStoryBasicInfo } = useUpdateStoryBasicInfo();
-
-  const stories: Story[] = useMemo(() => {
-    if (filteredUsers.length === 0) return allStories;
-    return allStories.filter((story) =>
-      filteredUsers.includes(story.assigned_to),
-    );
-  }, [allStories, filteredUsers]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        delay: 100,
-        tolerance: 5,
-      },
-    }),
-  );
-
-  const readyToDevStories = stories.filter(
-    (story) => story.environment === "readyToDev",
-  );
-  const devStories = stories.filter((story) => story.environment === "dev");
-  const readyToQasStories = stories.filter(
-    (story) => story.environment === "readyToQas",
-  );
-  const qasStories = stories.filter((story) => story.environment === "qas");
-  const readyToProdStories = stories.filter(
-    (story) => story.environment === "readyToProd",
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const storyId = active.id as string;
-    const newEnvironment = over.id as
-      | "readyToDev"
-      | "dev"
-      | "readyToQas"
-      | "qas"
-      | "readyToProd";
-
-    updateStoryBasicInfo({
-      id: storyId,
-      updates: {
-        environment: newEnvironment,
-      },
-    });
-  };
+export function KanbanBoard(): JSX.Element {
+  const {
+    storiesLoading,
+    sensors,
+    readyToDevStories,
+    devStories,
+    readyToQasStories,
+    qasStories,
+    readyToProdStories,
+    handleDragEnd,
+  } = useKanbanBoard();
 
   if (storiesLoading) {
     return <Loader />;

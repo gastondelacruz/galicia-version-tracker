@@ -3,65 +3,13 @@ import { AddUserDialog } from "@/features/users/components/AddUserDialog";
 import { AddStoryDialog } from "@/features/stories/components/AddStoryDialog";
 import { KanbanBoard } from "@/features/kanban/components/KanbanBoard";
 import { PersonFilter } from "@/features/users/components/PersonFilter";
+import { useDashboard } from "@/features/kanban/hooks/use-dashboard";
 import { Button } from "@/shared/components/ui/button";
-import { toast } from "@/shared/hooks/use-toast";
-import { supabase } from "@/infrastructure/supabaseClient";
-import { Session } from "@supabase/supabase-js";
 import { Layers, LogOut } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
-const Index = () => {
-  const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-      } else {
-        setSession(session);
-      }
-    };
+export default function Dashboard(): JSX.Element {
+  const { loading, handleLogout } = useDashboard();
 
-    checkAuth();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        navigate("/login");
-      }
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      toast({
-        title: "Exito",
-        description: "Se ha cerrado sesión correctamente",
-      });
-      navigate("/login");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al cerrar sesión",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -105,6 +53,4 @@ const Index = () => {
       </main>
     </div>
   );
-};
-
-export default Index;
+}

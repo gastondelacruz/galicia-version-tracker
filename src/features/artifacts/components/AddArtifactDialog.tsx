@@ -14,145 +14,42 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import {
-  useArtifacts,
-  useCreateArtifact,
-  useDeleteArtifact,
-  useUpdateArtifact,
-} from "@/features/artifacts/hooks/use-artifacts";
-import { toast } from "@/shared/hooks/use-toast";
+import { useAddArtifactDialog } from "@/features/artifacts/hooks/use-add-artifact-dialog";
 import { Artifact } from "@/shared/types";
 import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
 
-export function AddArtifactDialog() {
-  const [open, setOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<"FRONT" | "BACK">("BACK");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [filterName, setFilterName] = useState("");
-  const [filterType, setFilterType] = useState<"ALL" | "FRONT" | "BACK">("ALL");
-  const [editingName, setEditingName] = useState("");
-  const [editingType, setEditingType] = useState<"FRONT" | "BACK">("BACK");
-
-  const { data: artifacts = [], isLoading } = useArtifacts();
-  const { mutate: createArtifact, isPending: isCreating } =
-    useCreateArtifact();
-  const { mutate: updateArtifact, isPending: isUpdating } =
-    useUpdateArtifact();
-  const { mutate: deleteArtifact } = useDeleteArtifact();
-
-  const filteredArtifacts = artifacts.filter((a) => {
-    const matchesName = a.name.toLowerCase().includes(filterName.toLowerCase());
-    const matchesType = filterType === "ALL" || a.type === filterType;
-    return matchesName && matchesType;
-  });
-
-  const nameExists = (name: string, excludeId?: string) =>
-    artifacts.some(
-      (a) =>
-        a.name.toLowerCase() === name.trim().toLowerCase() &&
-        a.id !== excludeId,
-    );
-
-  const handleCreate = () => {
-    const trimmed = newName.trim();
-    if (!trimmed) return;
-    if (nameExists(trimmed)) {
-      toast({
-        title: "Error",
-        description: `"${trimmed}" ya existe`,
-        variant: "destructive",
-      });
-      return;
-    }
-    createArtifact(
-      { name: trimmed, type: newType },
-      {
-        onSuccess: () => {
-          setNewName("");
-          setNewType("BACK");
-          toast({ title: "Éxito", description: "Artefacto creado" });
-        },
-        onError: () =>
-          toast({
-            title: "Error",
-            description: "No se pudo crear",
-            variant: "destructive",
-          }),
-      },
-    );
-  };
-
-  const handleStartEdit = (artifact: Artifact) => {
-    setEditingId(artifact.id!);
-    setEditingName(artifact.name);
-    setEditingType(artifact.type);
-  };
-
-  const handleConfirmEdit = (id: string) => {
-    const trimmed = editingName.trim();
-    if (!trimmed) return;
-    if (nameExists(trimmed, id)) {
-      toast({
-        title: "Error",
-        description: `"${trimmed}" ya existe`,
-        variant: "destructive",
-      });
-      return;
-    }
-    updateArtifact(
-      { id, name: trimmed, type: editingType },
-      {
-        onSuccess: () => {
-          setEditingId(null);
-          toast({ title: "Éxito", description: "Artefacto actualizado" });
-        },
-        onError: () =>
-          toast({
-            title: "Error",
-            description: "No se pudo actualizar",
-            variant: "destructive",
-          }),
-      },
-    );
-  };
-
-  const handleDelete = (id: string, name: string) => {
-    setDeletingId(id);
-    deleteArtifact(id, {
-      onSuccess: () => {
-        setDeletingId(null);
-        toast({ title: "Éxito", description: `"${name}" eliminado` });
-      },
-      onError: () => {
-        setDeletingId(null);
-        toast({
-          title: "Error",
-          description: "No se pudo eliminar",
-          variant: "destructive",
-        });
-      },
-    });
-  };
-
-  const handleOpenChange = (value: boolean) => {
-    setOpen(value);
-    if (!value) {
-      setNewName("");
-      setNewType("BACK");
-      setFilterName("");
-      setFilterType("ALL");
-      setEditingId(null);
-      setEditingName("");
-      setEditingType("BACK");
-      setDeletingId(null);
-    }
-  };
+export function AddArtifactDialog(): JSX.Element {
+  const {
+    open,
+    onOpenChange,
+    newName,
+    newType,
+    isCreating,
+    setNewName,
+    setNewType,
+    handleCreate,
+    filterName,
+    filterType,
+    setFilterName,
+    setFilterType,
+    filteredArtifacts,
+    editingId,
+    editingName,
+    editingType,
+    isUpdating,
+    setEditingId,
+    setEditingName,
+    setEditingType,
+    handleStartEdit,
+    handleConfirmEdit,
+    deletingId,
+    handleDelete,
+    artifacts,
+    isLoading,
+  } = useAddArtifactDialog();
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" className="shadow-lg" variant="terciary">
           <Pencil className="mr-2 h-5 w-5" />
@@ -177,7 +74,7 @@ export function AddArtifactDialog() {
           />
           <Select
             value={newType}
-            onValueChange={(v) => setNewType(v as "FRONT" | "BACK")}
+            onValueChange={(v) => setNewType(v as Artifact["type"])}
           >
             <SelectTrigger className="w-[110px]">
               <SelectValue />
@@ -212,7 +109,7 @@ export function AddArtifactDialog() {
               <Select
                 value={filterType}
                 onValueChange={(v) =>
-                  setFilterType(v as "ALL" | "FRONT" | "BACK")
+                  setFilterType(v as "ALL" | Artifact["type"])
                 }
               >
                 <SelectTrigger className="w-[110px]">
@@ -252,8 +149,7 @@ export function AddArtifactDialog() {
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter")
-                            handleConfirmEdit(artifact.id!);
+                          if (e.key === "Enter") handleConfirmEdit(artifact.id!);
                           if (e.key === "Escape") setEditingId(null);
                         }}
                         autoFocus
@@ -261,7 +157,7 @@ export function AddArtifactDialog() {
                       <Select
                         value={editingType}
                         onValueChange={(v) =>
-                          setEditingType(v as "FRONT" | "BACK")
+                          setEditingType(v as Artifact["type"])
                         }
                       >
                         <SelectTrigger className="h-7 w-[100px] text-xs">
@@ -308,9 +204,7 @@ export function AddArtifactDialog() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7"
-                        onClick={() =>
-                          handleDelete(artifact.id!, artifact.name)
-                        }
+                        onClick={() => handleDelete(artifact.id!, artifact.name)}
                         disabled={deletingId === artifact.id}
                       >
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />

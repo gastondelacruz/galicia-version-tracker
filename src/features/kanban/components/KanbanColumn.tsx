@@ -1,17 +1,29 @@
 import { cn } from "@/shared/utils/utils";
+import { useKanbanColumn } from "@/features/kanban/hooks/use-kanban-column";
 import { Story } from "@/shared/types";
-import { useDroppable } from "@dnd-kit/core";
 import { StoryCard } from "@/features/stories/components/StoryCard";
 
-interface KanbanColumnProps {
-  id: "readyToDev" | "dev" | "readyToQas" | "qas" | "readyToProd";
-  title: string;
-  stories: Story[];
-  count: number;
-}
+type KanbanColumnId =
+  | "readyToDev"
+  | "dev"
+  | "readyToQas"
+  | "qas"
+  | "readyToProd";
 
-export function KanbanColumn({ id, title, stories, count }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id });
+type KanbanColumnProps = {
+  readonly id: KanbanColumnId;
+  readonly title: string;
+  readonly stories: Story[];
+  readonly count: number;
+};
+
+export function KanbanColumn({
+  id,
+  title,
+  stories,
+  count,
+}: KanbanColumnProps): JSX.Element {
+  const { setNodeRef, isOver } = useKanbanColumn({ id });
 
   return (
     <div className="flex-1 min-w-[320px]">

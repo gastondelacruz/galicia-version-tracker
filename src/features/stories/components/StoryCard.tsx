@@ -1,32 +1,25 @@
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { useStoryArtifacts } from "@/features/artifacts/hooks/use-artifacts";
-import { useUsers } from "@/features/users/hooks/use-users";
+import { useStoryCard } from "@/features/stories/hooks/use-story-card";
 import { Story } from "@/shared/types";
-import { useDraggable } from "@dnd-kit/core";
 import { Container, Package, User } from "lucide-react";
-import { useState } from "react";
 import { EditStoryDialog } from "@/features/stories/components/EditStoryDialog";
 
-interface StoryCardProps {
-  story: Story;
-}
+type StoryCardProps = {
+  readonly story: Story;
+};
 
-export function StoryCard({ story }: StoryCardProps) {
-  const { data: users = [] } = useUsers();
-  const { data: artifacts = [] } = useStoryArtifacts(story.id);
-  const [editOpen, setEditOpen] = useState(false);
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: story.id,
-    });
-
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        opacity: isDragging ? 0.5 : 1,
-      }
-    : undefined;
+export function StoryCard({ story }: StoryCardProps): JSX.Element {
+  const {
+    editOpen,
+    setEditOpen,
+    assignedUserName,
+    artifacts,
+    setNodeRef,
+    style,
+    listeners,
+    attributes,
+  } = useStoryCard({ story });
 
   return (
     <>
@@ -46,9 +39,7 @@ export function StoryCard({ story }: StoryCardProps) {
         <CardContent className="space-y-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
-            <span className="font-medium">
-              {users.find((user) => user.id === story.assigned_to)?.name}
-            </span>
+            <span className="font-medium">{assignedUserName}</span>
           </div>
 
           <div className="space-y-2">
@@ -72,7 +63,7 @@ export function StoryCard({ story }: StoryCardProps) {
                 {artifacts.map((artifact) => (
                   <Badge
                     key={artifact.id}
-                    variant={"secondary"}
+                    variant="secondary"
                     className="text-xs font-mono"
                   >
                     {artifact.name}
