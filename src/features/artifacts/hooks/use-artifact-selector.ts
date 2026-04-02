@@ -1,19 +1,9 @@
 import { useArtifacts } from "@/features/artifacts/hooks/use-artifacts";
-import { Artifact } from "@/shared/types";
+import type {
+  UseArtifactSelectorParams,
+  UseArtifactSelectorReturn,
+} from "@/features/artifacts/types";
 import { useState } from "react";
-
-type UseArtifactSelectorParams = {
-  readonly selected: Artifact[];
-  readonly onChange: (artifacts: Artifact[]) => void;
-};
-
-type UseArtifactSelectorReturn = {
-  readonly search: string;
-  readonly setSearch: (v: string) => void;
-  readonly filtered: Artifact[];
-  readonly handleAdd: (artifact: Artifact) => void;
-  readonly handleRemove: (id: string) => void;
-};
 
 export function useArtifactSelector({
   selected,

@@ -1,24 +1,12 @@
 import { useStoryArtifacts } from "@/features/artifacts/hooks/use-artifacts";
+import type {
+  UseStoryCardParams,
+  UseStoryCardReturn,
+} from "@/features/stories/types";
 import { useUsers } from "@/features/users/hooks/use-users";
-import { Artifact, Story } from "@/shared/types";
 import { useDraggable } from "@dnd-kit/core";
 import { useState } from "react";
 import { CSSProperties } from "react";
-
-type UseStoryCardParams = {
-  readonly story: Story;
-};
-
-type UseStoryCardReturn = {
-  readonly editOpen: boolean;
-  readonly setEditOpen: (v: boolean) => void;
-  readonly assignedUserName: string | undefined;
-  readonly artifacts: Artifact[];
-  readonly setNodeRef: (node: HTMLElement | null) => void;
-  readonly style: CSSProperties | undefined;
-  readonly listeners: ReturnType<typeof useDraggable>["listeners"];
-  readonly attributes: ReturnType<typeof useDraggable>["attributes"];
-};
 
 export function useStoryCard({
   story,

@@ -1,20 +1,12 @@
 import { useAddStoryArtifact } from "@/features/artifacts/hooks/use-artifacts";
 import { useCreateStory } from "@/features/stories/hooks/use-stories";
+import type { UseAddStoryDialogReturn } from "@/features/stories/types";
 import { useUsers } from "@/features/users/hooks/use-users";
 import { StoryFormData, storySchema } from "@/features/stories/validations/storySchema";
+import { ARTIFACT_TYPE, STORY_ENVIRONMENT } from "@/shared/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Person } from "@/shared/types";
-
-type UseAddStoryDialogReturn = {
-  readonly open: boolean;
-  readonly handleDialogOpenChange: (open: boolean) => void;
-  readonly form: ReturnType<typeof useForm<StoryFormData>>;
-  readonly users: Person[];
-  readonly isUpdating: boolean;
-  readonly handleSave: (data: StoryFormData) => void;
-};
 
 export function useAddStoryDialog(): UseAddStoryDialogReturn {
   const [open, setOpen] = useState(false);
@@ -24,8 +16,8 @@ export function useAddStoryDialog(): UseAddStoryDialogReturn {
     defaultValues: {
       name: "",
       assignedTo: "",
-      environment: "readyToDev",
-      type: "FRONT",
+      environment: STORY_ENVIRONMENT.READY_TO_DEV,
+      type: ARTIFACT_TYPE.FRONT,
       artifacts: [],
     },
   });

@@ -4,57 +4,24 @@ import {
   useDeleteArtifact,
   useUpdateArtifact,
 } from "@/features/artifacts/hooks/use-artifacts";
+import type {
+  ArtifactFilterType,
+  UseAddArtifactDialogReturn,
+} from "@/features/artifacts/types";
 import { toast } from "@/shared/hooks/use-toast";
-import { Artifact } from "@/shared/types";
+import { ARTIFACT_TYPE } from "@/shared/types";
+import type { Artifact, ArtifactType } from "@/shared/types";
 import { useState } from "react";
-
-type ArtifactType = Artifact["type"];
-type ArtifactFilterType = "ALL" | ArtifactType;
-
-type UseAddArtifactDialogReturn = {
-  // Dialog
-  readonly open: boolean;
-  readonly onOpenChange: (value: boolean) => void;
-  // Create
-  readonly newName: string;
-  readonly newType: ArtifactType;
-  readonly isCreating: boolean;
-  readonly setNewName: (v: string) => void;
-  readonly setNewType: (v: ArtifactType) => void;
-  readonly handleCreate: () => void;
-  // Filter
-  readonly filterName: string;
-  readonly filterType: ArtifactFilterType;
-  readonly setFilterName: (v: string) => void;
-  readonly setFilterType: (v: ArtifactFilterType) => void;
-  readonly filteredArtifacts: Artifact[];
-  // Edit
-  readonly editingId: string | null;
-  readonly editingName: string;
-  readonly editingType: ArtifactType;
-  readonly isUpdating: boolean;
-  readonly setEditingId: (id: string | null) => void;
-  readonly setEditingName: (v: string) => void;
-  readonly setEditingType: (v: ArtifactType) => void;
-  readonly handleStartEdit: (artifact: Artifact) => void;
-  readonly handleConfirmEdit: (id: string) => void;
-  // Delete
-  readonly deletingId: string | null;
-  readonly handleDelete: (id: string, name: string) => void;
-  // Data
-  readonly artifacts: Artifact[];
-  readonly isLoading: boolean;
-};
 
 export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState<ArtifactType>("BACK");
+  const [newType, setNewType] = useState<ArtifactType>(ARTIFACT_TYPE.BACK);
   const [filterName, setFilterName] = useState("");
   const [filterType, setFilterType] = useState<ArtifactFilterType>("ALL");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [editingType, setEditingType] = useState<ArtifactType>("BACK");
+  const [editingType, setEditingType] = useState<ArtifactType>(ARTIFACT_TYPE.BACK);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const { data: artifacts = [], isLoading } = useArtifacts();
@@ -91,7 +58,7 @@ export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
       {
         onSuccess: () => {
           setNewName("");
-          setNewType("BACK");
+          setNewType(ARTIFACT_TYPE.BACK);
           toast({ title: "Éxito", description: "Artefacto creado" });
         },
         onError: () =>
@@ -160,12 +127,12 @@ export function useAddArtifactDialog(): UseAddArtifactDialogReturn {
     setOpen(value);
     if (!value) {
       setNewName("");
-      setNewType("BACK");
+      setNewType(ARTIFACT_TYPE.BACK);
       setFilterName("");
       setFilterType("ALL");
       setEditingId(null);
       setEditingName("");
-      setEditingType("BACK");
+      setEditingType(ARTIFACT_TYPE.BACK);
       setDeletingId(null);
     }
   };

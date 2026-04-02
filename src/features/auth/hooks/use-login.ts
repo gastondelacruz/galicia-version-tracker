@@ -1,11 +1,9 @@
+import type { UseLoginReturn } from "@/features/auth/types";
 import { toast } from "@/shared/hooks/use-toast";
+import { ROUTES } from "@/shared/constants/routes";
 import { supabase } from "@/infrastructure/supabaseClient";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-type UseLoginReturn = {
-  readonly handleGoogleLogin: () => Promise<void>;
-};
 
 export function useLogin(): UseLoginReturn {
   const navigate = useNavigate();
@@ -16,7 +14,7 @@ export function useLogin(): UseLoginReturn {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        navigate(ROUTES.DASHBOARD);
       }
     };
     checkUser();
@@ -25,7 +23,7 @@ export function useLogin(): UseLoginReturn {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard");
+        navigate(ROUTES.DASHBOARD);
       }
     });
 
@@ -37,7 +35,7 @@ export function useLogin(): UseLoginReturn {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}${ROUTES.DASHBOARD}`,
         },
       });
 

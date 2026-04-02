@@ -2,6 +2,7 @@ import {
   useStoriesWithDetails,
   useUpdateStoryBasicInfo,
 } from "@/features/stories/hooks/use-stories";
+import type { UseKanbanBoardReturn } from "@/features/kanban/types";
 import { useKanbanStore } from "@/features/kanban/store/kanbanStore";
 import {
   DragEndEvent,
@@ -10,20 +11,8 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { useMemo } from "react";
-import { Story } from "@/shared/types";
-
-type Environment = "readyToDev" | "dev" | "readyToQas" | "qas" | "readyToProd";
-
-type UseKanbanBoardReturn = {
-  readonly storiesLoading: boolean;
-  readonly sensors: ReturnType<typeof useSensors>;
-  readonly readyToDevStories: Story[];
-  readonly devStories: Story[];
-  readonly readyToQasStories: Story[];
-  readonly qasStories: Story[];
-  readonly readyToProdStories: Story[];
-  readonly handleDragEnd: (event: DragEndEvent) => void;
-};
+import { STORY_ENVIRONMENT } from "@/shared/types";
+import type { Story, StoryEnvironment } from "@/shared/types";
 
 export function useKanbanBoard(): UseKanbanBoardReturn {
   const { data: allStories = [], isLoading: storiesLoading } =
@@ -48,15 +37,19 @@ export function useKanbanBoard(): UseKanbanBoardReturn {
   );
 
   const readyToDevStories = stories.filter(
-    (story) => story.environment === "readyToDev",
+    (story) => story.environment === STORY_ENVIRONMENT.READY_TO_DEV,
   );
-  const devStories = stories.filter((story) => story.environment === "dev");
+  const devStories = stories.filter(
+    (story) => story.environment === STORY_ENVIRONMENT.DEV,
+  );
   const readyToQasStories = stories.filter(
-    (story) => story.environment === "readyToQas",
+    (story) => story.environment === STORY_ENVIRONMENT.READY_TO_QAS,
   );
-  const qasStories = stories.filter((story) => story.environment === "qas");
+  const qasStories = stories.filter(
+    (story) => story.environment === STORY_ENVIRONMENT.QAS,
+  );
   const readyToProdStories = stories.filter(
-    (story) => story.environment === "readyToProd",
+    (story) => story.environment === STORY_ENVIRONMENT.READY_TO_PROD,
   );
 
   const handleDragEnd = (event: DragEndEvent): void => {
@@ -65,7 +58,7 @@ export function useKanbanBoard(): UseKanbanBoardReturn {
 
     updateStoryBasicInfo({
       id: active.id as string,
-      updates: { environment: over.id as Environment },
+      updates: { environment: over.id as StoryEnvironment },
     });
   };
 

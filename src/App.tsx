@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/shared/components/ui/sonner";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { ROUTES } from "@/shared/constants/routes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { queryClient } from "@/infrastructure/queryClient";
@@ -21,9 +22,9 @@ const App = () => (
       <BrowserRouter>
         <Suspense fallback={<Loader />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Navigate to={ROUTES.LOGIN} replace />} />
+            <Route path={ROUTES.LOGIN} element={<Login />} />
+            <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

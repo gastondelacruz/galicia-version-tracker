@@ -7,32 +7,17 @@ import {
   useDeleteStory,
   useUpdateStory,
 } from "@/features/stories/hooks/use-stories";
+import type {
+  UseEditStoryDialogParams,
+  UseEditStoryDialogReturn,
+} from "@/features/stories/types";
 import { useUsers } from "@/features/users/hooks/use-users";
 import { useToast } from "@/shared/hooks/use-toast";
-import { Artifact, Person, Story } from "@/shared/types";
+import type { Artifact } from "@/shared/types";
 import { StoryFormData, storySchema } from "@/features/stories/validations/storySchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-
-type UseEditStoryDialogParams = {
-  readonly story: Story;
-  readonly open: boolean;
-  readonly onOpenChange: (open: boolean) => void;
-};
-
-type UseEditStoryDialogReturn = {
-  readonly showDeleteAlert: boolean;
-  readonly setShowDeleteAlert: (v: boolean) => void;
-  readonly form: ReturnType<typeof useForm<StoryFormData>>;
-  readonly users: Person[];
-  readonly existingArtifacts: Artifact[];
-  readonly isUpdating: boolean;
-  readonly isDeleting: boolean;
-  readonly handleSave: (data: StoryFormData) => void;
-  readonly handleDelete: () => void;
-  readonly handleOpenChange: (value: boolean) => void;
-};
 
 export function useEditStoryDialog({
   story,

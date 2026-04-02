@@ -1,13 +1,15 @@
-import { Artifact } from "@/shared/types";
+import type { Artifact } from "@/shared/types";
+import { QUERY_KEYS } from "@/shared/constants/queryKeys";
+import { DB_TABLES } from "@/shared/constants/tables";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
 
 export const useArtifacts = () => {
   return useQuery({
-    queryKey: ["artifactsv2"],
+    queryKey: QUERY_KEYS.ARTIFACTS,
     queryFn: async (): Promise<Artifact[]> => {
       const { data, error } = await supabase
-        .from("artifactsv2")
+        .from(DB_TABLES.ARTIFACTS)
         .select("*")
         .order("name", { ascending: true });
       if (error) throw new Error(error.message);
@@ -22,7 +24,7 @@ export const useCreateArtifact = () => {
   return useMutation({
     mutationFn: async ({ name, type }: Pick<Artifact, "name" | "type">) => {
       const { data, error } = await supabase
-        .from("artifactsv2")
+        .from(DB_TABLES.ARTIFACTS)
         .insert({ name, type })
         .select()
         .single();
@@ -31,7 +33,7 @@ export const useCreateArtifact = () => {
       return data as Artifact;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ARTIFACTS });
     },
   });
 };
@@ -46,10 +48,10 @@ export const useUpdateArtifact = () => {
     }: {
       id: string;
       name: string;
-      type: "FRONT" | "BACK";
+      type: Artifact["type"];
     }) => {
       const { data, error } = await supabase
-        .from("artifactsv2")
+        .from(DB_TABLES.ARTIFACTS)
         .update({ name, type })
         .eq("id", id)
         .select()
@@ -58,7 +60,7 @@ export const useUpdateArtifact = () => {
       return data as Artifact;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ARTIFACTS });
     },
   });
 };
@@ -68,24 +70,24 @@ export const useDeleteArtifact = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("artifactsv2")
+        .from(DB_TABLES.ARTIFACTS)
         .delete()
         .eq("id", id);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["artifactsv2"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ARTIFACTS });
     },
   });
 };
 
 export const useStoryArtifacts = (storyId: string) => {
   return useQuery({
-    queryKey: ["story-artifacts-v2", storyId],
+    queryKey: QUERY_KEYS.storyArtifacts(storyId),
     queryFn: async (): Promise<Artifact[]> => {
       const { data, error } = await supabase
-        .from("story_artifacts")
-        .select("artifactsv2(*)")
+        .from(DB_TABLES.STORY_ARTIFACTS)
+        .select(`${DB_TABLES.ARTIFACTS}(*)`)
         .eq("story_id", storyId);
       if (error) throw new Error(error.message);
       return (data
@@ -107,15 +109,15 @@ export const useAddStoryArtifact = () => {
       artifactId: string;
     }) => {
       const { error } = await supabase
-        .from("story_artifacts")
+        .from(DB_TABLES.STORY_ARTIFACTS)
         .insert({ story_id: storyId, artifact_id: artifactId });
       if (error) throw new Error(error.message);
     },
     onSuccess: (_, { storyId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["story-artifacts-v2", storyId],
+        queryKey: QUERY_KEYS.storyArtifacts(storyId),
       });
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
     },
   });
 };
@@ -131,7 +133,7 @@ export const useRemoveStoryArtifact = () => {
       artifactId: string;
     }) => {
       const { error } = await supabase
-        .from("story_artifacts")
+        .from(DB_TABLES.STORY_ARTIFACTS)
         .delete()
         .eq("story_id", storyId)
         .eq("artifact_id", artifactId);
@@ -139,9 +141,9 @@ export const useRemoveStoryArtifact = () => {
     },
     onSuccess: (_, { storyId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["story-artifacts-v2", storyId],
+        queryKey: QUERY_KEYS.storyArtifacts(storyId),
       });
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
     },
   });
 };

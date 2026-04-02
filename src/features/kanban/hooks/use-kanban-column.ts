@@ -1,20 +1,8 @@
+import type {
+  UseKanbanColumnParams,
+  UseKanbanColumnReturn,
+} from "@/features/kanban/types";
 import { useDroppable } from "@dnd-kit/core";
-
-type KanbanColumnId =
-  | "readyToDev"
-  | "dev"
-  | "readyToQas"
-  | "qas"
-  | "readyToProd";
-
-type UseKanbanColumnParams = {
-  readonly id: KanbanColumnId;
-};
-
-type UseKanbanColumnReturn = {
-  readonly setNodeRef: (node: HTMLElement | null) => void;
-  readonly isOver: boolean;
-};
 
 export function useKanbanColumn({
   id,

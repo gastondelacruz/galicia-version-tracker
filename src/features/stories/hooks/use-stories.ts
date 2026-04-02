@@ -1,17 +1,19 @@
-import { Story } from "@/shared/types";
+import type { Story } from "@/shared/types";
+import { QUERY_KEYS } from "@/shared/constants/queryKeys";
+import { DB_TABLES } from "@/shared/constants/tables";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
 
 export const useStoriesWithDetails = () => {
   return useQuery({
-    queryKey: ["stories", "with-details"],
+    queryKey: QUERY_KEYS.STORIES_WITH_DETAILS,
     queryFn: async (): Promise<Story[]> => {
       const { data, error } = await supabase
-        .from("stories")
+        .from(DB_TABLES.STORIES)
         .select(
           `
           *,
-          assigned_user:people!assigned_to(
+          assigned_user:${DB_TABLES.PEOPLE}!assigned_to(
             id,
             name,
             created_at
@@ -38,7 +40,7 @@ export const useUpdateStoryBasicInfo = () => {
       updates: Partial<Pick<Story, "name" | "assigned_to" | "environment">>;
     }) => {
       const { data, error } = await supabase
-        .from("stories")
+        .from(DB_TABLES.STORIES)
         .update(updates)
         .eq("id", id)
         .select()
@@ -48,21 +50,21 @@ export const useUpdateStoryBasicInfo = () => {
       return data as Story;
     },
     onMutate: async ({ id, updates }) => {
-      await queryClient.cancelQueries({ queryKey: ["stories", "with-details"] });
-      const previousStories = queryClient.getQueryData<Story[]>(["stories", "with-details"]);
-      queryClient.setQueryData<Story[]>(["stories", "with-details"], (old) =>
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.STORIES_WITH_DETAILS });
+      const previousStories = queryClient.getQueryData<Story[]>(QUERY_KEYS.STORIES_WITH_DETAILS);
+      queryClient.setQueryData<Story[]>(QUERY_KEYS.STORIES_WITH_DETAILS, (old) =>
         old?.map((story) => (story.id === id ? { ...story, ...updates } : story)) ?? []
       );
       return { previousStories };
     },
     onError: (_err, _variables, context) => {
       if (context?.previousStories) {
-        queryClient.setQueryData(["stories", "with-details"], context.previousStories);
+        queryClient.setQueryData(QUERY_KEYS.STORIES_WITH_DETAILS, context.previousStories);
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      queryClient.invalidateQueries({ queryKey: ["story", variables.id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.story(variables.id) });
     },
   });
 };
@@ -91,7 +93,7 @@ export const useUpdateStory = () => {
       if (type !== undefined) storyUpdates.type = type;
 
       const { data, error: storyError } = await supabase
-        .from("stories")
+        .from(DB_TABLES.STORIES)
         .update(storyUpdates)
         .eq("id", id)
         .select()
@@ -101,8 +103,8 @@ export const useUpdateStory = () => {
       return data as Story;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      queryClient.invalidateQueries({ queryKey: ["story", variables.id] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.story(variables.id) });
     },
   });
 };
@@ -117,7 +119,7 @@ export const useCreateStory = () => {
       story: Pick<Story, "name" | "assigned_to" | "environment" | "type">;
     }) => {
       const { data: storyData, error: storyError } = await supabase
-        .from("stories")
+        .from(DB_TABLES.STORIES)
         .insert({
           name: story.name,
           assigned_to: story.assigned_to,
@@ -132,7 +134,7 @@ export const useCreateStory = () => {
       return storyData as Story;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
     },
   });
 };
@@ -143,7 +145,7 @@ export const useDeleteStory = () => {
   return useMutation({
     mutationFn: async ({ storyId }: { storyId: string }) => {
       const { error: deleteStoryArtifactsError } = await supabase
-        .from("story_artifacts")
+        .from(DB_TABLES.STORY_ARTIFACTS)
         .delete()
         .eq("story_id", storyId);
 
@@ -151,7 +153,7 @@ export const useDeleteStory = () => {
         throw new Error(deleteStoryArtifactsError.message);
 
       const { error: deleteStoryError } = await supabase
-        .from("stories")
+        .from(DB_TABLES.STORIES)
         .delete()
         .eq("id", storyId);
 
@@ -160,7 +162,7 @@ export const useDeleteStory = () => {
       return { storyId };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
     },
   });
 };

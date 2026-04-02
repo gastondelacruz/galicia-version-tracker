@@ -1,12 +1,9 @@
+import type { UseDashboardReturn } from "@/features/kanban/types";
 import { toast } from "@/shared/hooks/use-toast";
+import { ROUTES } from "@/shared/constants/routes";
 import { supabase } from "@/infrastructure/supabaseClient";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-type UseDashboardReturn = {
-  readonly loading: boolean;
-  readonly handleLogout: () => Promise<void>;
-};
 
 export function useDashboard(): UseDashboardReturn {
   const navigate = useNavigate();
@@ -18,7 +15,7 @@ export function useDashboard(): UseDashboardReturn {
         data: { session },
       } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login");
+        navigate(ROUTES.LOGIN);
       }
     };
 
@@ -28,7 +25,7 @@ export function useDashboard(): UseDashboardReturn {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
-        navigate("/login");
+        navigate(ROUTES.LOGIN);
       }
     });
 
@@ -45,7 +42,7 @@ export function useDashboard(): UseDashboardReturn {
         title: "Exito",
         description: "Se ha cerrado sesión correctamente",
       });
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
     } catch {
       toast({
         title: "Error",
