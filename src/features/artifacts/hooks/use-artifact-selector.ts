@@ -3,6 +3,7 @@ import type {
   UseArtifactSelectorParams,
   UseArtifactSelectorReturn,
 } from "@/features/artifacts/types";
+import { Artifact } from "@/shared/types";
 import { useState } from "react";
 
 export function useArtifactSelector({
