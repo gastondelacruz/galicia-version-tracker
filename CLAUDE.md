@@ -25,6 +25,7 @@ Use these skills for detailed patterns on-demand:
 | `tailwind`        | Tailwind CSS utility-first styling patterns             | [SKILL.md](skills/tailwind/SKILL.md)        |
 | `typescript`      | TypeScript strict patterns and type-safety              | [SKILL.md](skills/typescript/SKILL.md)      |
 | `commit`               | Commit conventions, message format and PR guidelines            | [SKILL.md](skills/commit/SKILL.md)               |
+| `pr`                   | Create well-documented pull requests with gh CLI                | [SKILL.md](skills/pr/SKILL.md)                   |
 | `component-hook-split` | Every new component must delegate all logic to a `useXxx` hook  | [SKILL.md](skills/component-hook-split/SKILL.md) |
 
 ### Auto-invoke Skills
@@ -41,7 +42,8 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Making API calls / managing server state    | `tanstack-query`  |
 | Building forms with validation              | `react-hook-form` |
 | Styling components with utility classes     | `tailwind`        |
-| Creating a commit or pull request           | `commit`                |
+| Creating a commit                           | `commit`                |
+| Creating a pull request                     | `pr`                    |
 | Creating or refactoring any component       | `component-hook-split`  |
 
 ---
