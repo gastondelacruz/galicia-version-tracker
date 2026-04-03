@@ -24,9 +24,12 @@ jobs:
 
       - name: Verify
         run: npm run verify
-
+        
       - name: Build
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3
