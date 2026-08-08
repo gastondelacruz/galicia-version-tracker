@@ -1,8 +1,10 @@
 export const QUERY_KEYS = {
-  USERS: ["users"] as const,
-  ARTIFACTS: ["artifactsv2"] as const,
-  STORIES: ["stories"] as const,
-  STORIES_WITH_DETAILS: ["stories", "with-details"] as const,
-  story: (id: string) => ["story", id] as const,
-  storyArtifacts: (storyId: string) => ["story-artifacts-v2", storyId] as const,
+	USERS: (scope: string) => ["users", scope] as const,
+	ARTIFACTS: (scope: string) => ["artifactsv2", scope] as const,
+	STORIES: (scope: string) => ["stories", scope] as const,
+	STORIES_WITH_DETAILS: (scope: string) =>
+		["stories", "with-details", scope] as const,
+	story: (id: string, scope: string) => ["story", id, scope] as const,
+	storyArtifacts: (storyId: string, scope: string) =>
+		["story-artifacts-v2", storyId, scope] as const,
 };

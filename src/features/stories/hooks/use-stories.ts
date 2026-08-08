@@ -1,168 +1,175 @@
 import type { Story } from "@/shared/types";
 import { QUERY_KEYS } from "@/shared/constants/queryKeys";
 import { DB_TABLES } from "@/shared/constants/tables";
+import { PROJECT_IDS } from "@/shared/constants/projects";
+import { useProjectScope } from "@/shared/hooks/use-project-scope";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
 
 export const useStoriesWithDetails = () => {
-  return useQuery({
-    queryKey: QUERY_KEYS.STORIES_WITH_DETAILS,
-    queryFn: async (): Promise<Story[]> => {
-      const { data, error } = await supabase
-        .from(DB_TABLES.STORIES)
-        .select(
-          `
-          *,
-          assigned_user:${DB_TABLES.PEOPLE}!assigned_to(
-            id,
-            name,
-            created_at
-          )
-        `,
-        )
-        .order("created_at", { ascending: false });
-
-      if (error) throw new Error(error.message);
-      return data as Story[];
-    },
-  });
+	const scope = useProjectScope();
+	const scopeKey = scope.projectId ?? "all";
+	return useQuery({
+		queryKey: QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+		enabled: !scope.isLoading && scope.hasProfile,
+		queryFn: async (): Promise<Story[]> => {
+			let query = supabase
+				.from(DB_TABLES.STORIES)
+				.select(
+					`*, assigned_user:${DB_TABLES.PEOPLE}!assigned_to(id, name, created_at)`,
+				)
+				.order("created_at", { ascending: false });
+			if (scope.projectId) query = query.eq("project_id", scope.projectId);
+			const { data, error } = await query;
+			if (error) throw new Error(error.message);
+			return data as Story[];
+		},
+	});
 };
 
 export const useUpdateStoryBasicInfo = () => {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
+	const scope = useProjectScope();
+	const scopeKey = scope.projectId ?? "all";
+	return useMutation({
+		mutationFn: async ({
+			id,
+			updates,
+		}: {
+			id: string;
+			updates: Partial<Pick<Story, "name" | "assigned_to" | "environment">>;
+		}) => {
+			const { data, error } = await supabase
+				.from(DB_TABLES.STORIES)
+				.update(updates)
+				.eq("id", id)
+				.select()
+				.single();
+			if (error) throw new Error(error.message);
+			return data as Story;
+		},
+		onMutate: async ({ id, updates }) => {
+			const storiesQueryKey = QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey);
+			await queryClient.cancelQueries({ queryKey: storiesQueryKey });
+			const previousStories =
+				queryClient.getQueryData<Story[]>(storiesQueryKey);
 
-  return useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: string;
-      updates: Partial<Pick<Story, "name" | "assigned_to" | "environment">>;
-    }) => {
-      const { data, error } = await supabase
-        .from(DB_TABLES.STORIES)
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
+			queryClient.setQueryData<Story[]>(storiesQueryKey, (currentStories) =>
+				currentStories?.map((story) =>
+					story.id === id ? { ...story, ...updates } : story,
+				),
+			);
 
-      if (error) throw new Error(error.message);
-      return data as Story;
-    },
-    onMutate: async ({ id, updates }) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.STORIES_WITH_DETAILS });
-      const previousStories = queryClient.getQueryData<Story[]>(QUERY_KEYS.STORIES_WITH_DETAILS);
-      queryClient.setQueryData<Story[]>(QUERY_KEYS.STORIES_WITH_DETAILS, (old) =>
-        old?.map((story) => (story.id === id ? { ...story, ...updates } : story)) ?? []
-      );
-      return { previousStories };
-    },
-    onError: (_err, _variables, context) => {
-      if (context?.previousStories) {
-        queryClient.setQueryData(QUERY_KEYS.STORIES_WITH_DETAILS, context.previousStories);
-      }
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.story(variables.id) });
-    },
-  });
+			return { previousStories };
+		},
+		onError: (_error, _variables, context) => {
+			if (context?.previousStories !== undefined) {
+				queryClient.setQueryData(
+					QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+					context.previousStories,
+				);
+			}
+		},
+		onSettled: (_data, _error, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+			});
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) });
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.story(variables.id, scopeKey),
+			});
+		},
+	});
 };
 
 export const useUpdateStory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      id,
-      updates,
-    }: {
-      id: string;
-      updates: Partial<
-        Pick<Story, "name" | "assigned_to" | "environment" | "type">
-      >;
-    }) => {
-      const { name, assigned_to, environment, type } = updates;
-
-      const storyUpdates: Partial<
-        Pick<Story, "name" | "assigned_to" | "environment" | "type">
-      > = {};
-      if (name !== undefined) storyUpdates.name = name;
-      if (assigned_to !== undefined) storyUpdates.assigned_to = assigned_to;
-      if (environment !== undefined) storyUpdates.environment = environment;
-      if (type !== undefined) storyUpdates.type = type;
-
-      const { data, error: storyError } = await supabase
-        .from(DB_TABLES.STORIES)
-        .update(storyUpdates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (storyError) throw new Error(storyError.message);
-      return data as Story;
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.story(variables.id) });
-    },
-  });
+	const queryClient = useQueryClient();
+	const scope = useProjectScope();
+	const scopeKey = scope.projectId ?? "all";
+	return useMutation({
+		mutationFn: async ({
+			id,
+			updates,
+		}: {
+			id: string;
+			updates: Partial<
+				Pick<Story, "name" | "assigned_to" | "environment" | "type">
+			>;
+		}) => {
+			const { name, assigned_to, environment, type } = updates;
+			const storyUpdates: Partial<
+				Pick<Story, "name" | "assigned_to" | "environment" | "type">
+			> = {};
+			if (name !== undefined) storyUpdates.name = name;
+			if (assigned_to !== undefined) storyUpdates.assigned_to = assigned_to;
+			if (environment !== undefined) storyUpdates.environment = environment;
+			if (type !== undefined) storyUpdates.type = type;
+			const { data, error } = await supabase
+				.from(DB_TABLES.STORIES)
+				.update(storyUpdates)
+				.eq("id", id)
+				.select()
+				.single();
+			if (error) throw new Error(error.message);
+			return data as Story;
+		},
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) });
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+			});
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.story(variables.id, scopeKey),
+			});
+		},
+	});
 };
 
 export const useCreateStory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      story,
-    }: {
-      story: Pick<Story, "name" | "assigned_to" | "environment" | "type">;
-    }) => {
-      const { data: storyData, error: storyError } = await supabase
-        .from(DB_TABLES.STORIES)
-        .insert({
-          name: story.name,
-          assigned_to: story.assigned_to,
-          environment: story.environment,
-          type: story.type,
-        })
-        .select()
-        .single();
-
-      if (storyError) throw new Error(storyError.message);
-
-      return storyData as Story;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
-    },
-  });
+	const queryClient = useQueryClient();
+	const scope = useProjectScope();
+	const scopeKey = scope.projectId ?? "all";
+	return useMutation({
+		mutationFn: async ({
+			story,
+		}: {
+			story: Pick<Story, "name" | "assigned_to" | "environment" | "type">;
+		}) => {
+			const { data, error } = await supabase
+				.from(DB_TABLES.STORIES)
+				.insert({
+					...story,
+					project_id: scope.projectId ?? PROJECT_IDS.ONBOARDING,
+				})
+				.select()
+				.single();
+			if (error) throw new Error(error.message);
+			return data as Story;
+		},
+		onSuccess: () =>
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) }),
+	});
 };
 
 export const useDeleteStory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ storyId }: { storyId: string }) => {
-      const { error: deleteStoryArtifactsError } = await supabase
-        .from(DB_TABLES.STORY_ARTIFACTS)
-        .delete()
-        .eq("story_id", storyId);
-
-      if (deleteStoryArtifactsError)
-        throw new Error(deleteStoryArtifactsError.message);
-
-      const { error: deleteStoryError } = await supabase
-        .from(DB_TABLES.STORIES)
-        .delete()
-        .eq("id", storyId);
-
-      if (deleteStoryError) throw new Error(deleteStoryError.message);
-
-      return { storyId };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES });
-    },
-  });
+	const queryClient = useQueryClient();
+	const scope = useProjectScope();
+	const scopeKey = scope.projectId ?? "all";
+	return useMutation({
+		mutationFn: async ({ storyId }: { storyId: string }) => {
+			const { error: artifactsError } = await supabase
+				.from(DB_TABLES.STORY_ARTIFACTS)
+				.delete()
+				.eq("story_id", storyId);
+			if (artifactsError) throw new Error(artifactsError.message);
+			const { error: storyError } = await supabase
+				.from(DB_TABLES.STORIES)
+				.delete()
+				.eq("id", storyId);
+			if (storyError) throw new Error(storyError.message);
+			return { storyId };
+		},
+		onSuccess: () =>
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) }),
+	});
 };
