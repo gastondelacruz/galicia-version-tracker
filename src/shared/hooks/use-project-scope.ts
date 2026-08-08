@@ -1,5 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import {
+	createContext,
+	createElement,
+	useContext,
+	useMemo,
+	useState,
+	type ReactNode,
+} from "react";
 import { supabase } from "@/infrastructure/supabaseClient";
+import { PROJECT_IDS, type ProjectId } from "@/shared/constants/projects";
 import {
 	getProjectScope,
 	type ProjectScope,
@@ -12,15 +21,33 @@ type ProfileRow = {
 	readonly project_id: string | null;
 };
 
-type UseProjectScopeReturn = ProjectScope & {
+type ProjectScopeContextValue = ProjectScope & {
+	readonly selectedProjectId: ProjectId;
+	readonly setSelectedProjectId: (projectId: string) => void;
 	readonly isLoading: boolean;
 	readonly hasProfile: boolean;
 };
 
-export function useProjectScope(): UseProjectScopeReturn {
-	const { data, isLoading } = useQuery({
+export type ProjectScopeProviderProps = {
+	readonly children: ReactNode;
+	readonly profile?: ProfileRow;
+};
+
+const ProjectScopeContext = createContext<ProjectScopeContextValue | null>(
+	null,
+);
+
+export function ProjectScopeProvider({
+	children,
+	profile: providedProfile,
+}: ProjectScopeProviderProps): JSX.Element {
+	const [selectedProjectId, setSelectedProjectId] = useState<ProjectId>(
+		PROJECT_IDS.ONBOARDING,
+	);
+	const { data: fetchedProfile, isLoading } = useQuery({
 		queryKey: PROJECT_SCOPE_QUERY_KEY,
-		queryFn: async (): Promise<ProjectScope | null> => {
+		enabled: providedProfile === undefined,
+		queryFn: async (): Promise<ProfileRow | null> => {
 			const {
 				data: { user },
 				error: userError,
@@ -34,15 +61,42 @@ export function useProjectScope(): UseProjectScopeReturn {
 				.eq("id", user.id)
 				.single<ProfileRow>();
 			if (profileError) throw new Error(profileError.message);
-
-			return getProjectScope(profile);
+			return profile;
 		},
 	});
 
-	return {
-		projectId: data?.projectId ?? null,
-		isAdmin: data?.isAdmin ?? false,
-		isLoading,
-		hasProfile: data !== null && data !== undefined,
-	};
+	const profile = providedProfile ?? fetchedProfile;
+	const baseScope = profile ? getProjectScope(profile) : null;
+	const value = useMemo<ProjectScopeContextValue>(() => {
+		const isAdmin = baseScope?.isAdmin ?? false;
+		const projectId = isAdmin
+			? selectedProjectId
+			: (baseScope?.projectId ?? null);
+
+		return {
+			projectId,
+			isAdmin,
+			selectedProjectId,
+			setSelectedProjectId: (nextProjectId: string): void => {
+				if (!isAdmin) return;
+				if (Object.values(PROJECT_IDS).includes(nextProjectId as ProjectId)) {
+					setSelectedProjectId(nextProjectId as ProjectId);
+				}
+			},
+			isLoading: providedProfile === undefined ? isLoading : false,
+			hasProfile: profile !== null && profile !== undefined,
+		};
+	}, [baseScope, isLoading, profile, providedProfile, selectedProjectId]);
+
+	return createElement(ProjectScopeContext.Provider, { value }, children);
+}
+
+export type UseProjectScopeReturn = ProjectScopeContextValue;
+
+export function useProjectScope(): UseProjectScopeReturn {
+	const scope = useContext(ProjectScopeContext);
+	if (!scope) {
+		throw new Error("useProjectScope must be used within ProjectScopeProvider");
+	}
+	return scope;
 }

@@ -1,7 +1,6 @@
 import type { Artifact } from "@/shared/types";
 import { QUERY_KEYS } from "@/shared/constants/queryKeys";
 import { DB_TABLES } from "@/shared/constants/tables";
-import { PROJECT_IDS } from "@/shared/constants/projects";
 import { useProjectScope } from "@/shared/hooks/use-project-scope";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
@@ -31,12 +30,17 @@ export const useCreateArtifact = () => {
 	const scopeKey = scope.projectId ?? "all";
 	return useMutation({
 		mutationFn: async ({ name, type }: Pick<Artifact, "name" | "type">) => {
+			const projectId = scope.projectId;
+			if (!projectId)
+				throw new Error(
+					"A project must be selected before creating an artifact",
+				);
 			const { data, error } = await supabase
 				.from(DB_TABLES.ARTIFACTS)
 				.insert({
 					name,
 					type,
-					project_id: scope.projectId ?? PROJECT_IDS.ONBOARDING,
+					project_id: projectId,
 				})
 				.select()
 				.single();
@@ -134,10 +138,15 @@ export const useAddStoryArtifact = () => {
 			storyId: string;
 			artifactId: string;
 		}) => {
+			const projectId = scope.projectId;
+			if (!projectId)
+				throw new Error(
+					"A project must be selected before adding an artifact to a story",
+				);
 			const { error } = await supabase.from(DB_TABLES.STORY_ARTIFACTS).insert({
 				story_id: storyId,
 				artifact_id: artifactId,
-				project_id: scope.projectId ?? PROJECT_IDS.ONBOARDING,
+				project_id: projectId,
 			});
 			if (error) throw new Error(error.message);
 		},

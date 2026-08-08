@@ -1,7 +1,6 @@
 import type { Person } from "@/shared/types";
 import { QUERY_KEYS } from "@/shared/constants/queryKeys";
 import { DB_TABLES } from "@/shared/constants/tables";
-import { PROJECT_IDS } from "@/shared/constants/projects";
 import { useProjectScope } from "@/shared/hooks/use-project-scope";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
@@ -31,9 +30,15 @@ export const useCreateUser = () => {
 	const scopeKey = scope.projectId ?? "all";
 	return useMutation({
 		mutationFn: async ({ name }: { name: string }) => {
+			const projectId = scope.projectId;
+			if (!projectId)
+				throw new Error("A project must be selected before creating a user");
 			const { data, error } = await supabase
 				.from(DB_TABLES.PEOPLE)
-				.insert({ name, project_id: scope.projectId ?? PROJECT_IDS.ONBOARDING })
+				.insert({
+					name,
+					project_id: projectId,
+				})
 				.select()
 				.single();
 			if (error) throw new Error(error.message);

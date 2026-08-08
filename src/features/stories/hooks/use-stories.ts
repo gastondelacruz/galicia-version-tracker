@@ -1,7 +1,6 @@
 import type { Story } from "@/shared/types";
 import { QUERY_KEYS } from "@/shared/constants/queryKeys";
 import { DB_TABLES } from "@/shared/constants/tables";
-import { PROJECT_IDS } from "@/shared/constants/projects";
 import { useProjectScope } from "@/shared/hooks/use-project-scope";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/infrastructure/supabaseClient";
@@ -135,19 +134,26 @@ export const useCreateStory = () => {
 		}: {
 			story: Pick<Story, "name" | "assigned_to" | "environment" | "type">;
 		}) => {
+			const projectId = scope.projectId;
+			if (!projectId)
+				throw new Error("A project must be selected before creating a story");
 			const { data, error } = await supabase
 				.from(DB_TABLES.STORIES)
 				.insert({
 					...story,
-					project_id: scope.projectId ?? PROJECT_IDS.ONBOARDING,
+					project_id: projectId,
 				})
 				.select()
 				.single();
 			if (error) throw new Error(error.message);
 			return data as Story;
 		},
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) });
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+			});
+		},
 	});
 };
 
@@ -169,7 +175,11 @@ export const useDeleteStory = () => {
 			if (storyError) throw new Error(storyError.message);
 			return { storyId };
 		},
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: QUERY_KEYS.STORIES(scopeKey) });
+			queryClient.invalidateQueries({
+				queryKey: QUERY_KEYS.STORIES_WITH_DETAILS(scopeKey),
+			});
+		},
 	});
 };
